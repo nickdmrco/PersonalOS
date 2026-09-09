@@ -39,14 +39,27 @@ gitignored. The `anon` key is designed to be public (it ships to the browser);
 its safety comes entirely from the RLS policies in step 3, which is why those
 matter more than the key does.
 
-## 3. Run the migration
+## 3. Run the migrations
 
-Supabase dashboard -> SQL Editor -> New query. Paste the whole contents of
-`supabase/migrations/0001_init.sql` and run it.
+Supabase dashboard -> SQL Editor -> New query. Run each file in
+`supabase/migrations/` in order, one query at a time:
 
-It creates all eight tables — the full data model, not just tasks — plus
-indexes, the new-user trigger, and an owner-only RLS policy on every table.
-Building only the tasks UI now doesn't mean rewriting the schema later.
+- `0001_init.sql` — all eight tables, indexes, the new-user trigger, and an
+  owner-only RLS policy on every table.
+- `0002_review_once_per_week.sql` — a unique constraint on
+  `reviews (user_id, week_of)`. `finishReview` upserts against this
+  constraint, so the weekly review errors until it exists.
+
+Supabase's SQL editor warns that `0001` "creates tables without enabling RLS".
+That is a false positive: the enabling statements are built as strings inside
+a `do $$` block, which its analyser can't read. Verify for yourself with:
+
+```sql
+select tablename, rowsecurity from pg_tables
+where schemaname = 'public' order by tablename;
+```
+
+Eight rows, every `rowsecurity` true.
 
 ## 4. Configure the auth redirect
 
@@ -73,17 +86,27 @@ click the link Supabase mails you, and you should land on the task list.
 ```
 src/
   proxy.ts                   session refresh + route guard
-  lib/supabase/client.ts     browser client
-  lib/supabase/server.ts     server client (cookie-backed)
+  lib/
+    supabase/client.ts       browser client
+    supabase/server.ts       server client (cookie-backed)
+    data.ts                  loadAll() — the seven tables in one round trip
+    model.ts                 progress, drift, rule-of-day: the app's opinions
+    dates.ts                 local-day keys, quarters, week boundaries
+    types.ts                 row types
+  components/                rail, task rows, goal cards, review wizard, editors
   app/
     layout.tsx               fonts, metadata
     globals.css              design tokens, light + dark
-    page.tsx                 the slice: open tasks, completed-last-7-days, undo
-    actions.ts               server actions (add / toggle / delete / sign out)
-    login/page.tsx           magic-link sign in, no passwords
+    actions.ts               every server action
+    login/page.tsx           magic link, with a password fallback
     auth/callback/route.ts   code -> session exchange
+    (app)/                   the signed-in shell and every view
+      page.tsx               today: focus, due, rule of the day
+      inbox/ log/ review/    daily and weekly
+      goals/ dreams/ rules/  quarterly, yearly, standing
 supabase/migrations/
   0001_init.sql              full schema + RLS
+  0002_review_once_per_week.sql
 ```
 
 ## Verifying RLS actually works
@@ -94,9 +117,28 @@ task is invisible — not filtered in the UI, but absent from the query. If you
 ever see another account's row, stop and fix the policy before writing anything
 else on top of it.
 
+## Deploying to Vercel
+
+1. Run both migrations against the Supabase project first (step 3).
+2. Import the repo at vercel.com/new. Next.js is detected automatically.
+3. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` under
+   Settings -> Environment Variables, for Production, Preview and Development.
+   Set them as **Config**, not Secret: both ship to the browser by design, and
+   Secret values can't be read back afterwards. The `service_role` key is the
+   one that would be a Secret — nothing here uses it, and it must never carry
+   a `NEXT_PUBLIC_` prefix.
+4. Add the deployed URL to Supabase -> Authentication -> URL Configuration, as
+   both the Site URL and a redirect (`https://<host>/auth/callback`).
+
+Vercel only builds on pushes it receives after the repo is connected, so if
+the project shows "No Production Deployment", push a commit to `main`.
+
 ## Next
 
-- Deploy to Vercel, add the env vars there, add the Vercel URL to Supabase's
-  redirect list. Confirm login works in production before building further.
-- Then port the rest: inbox, goals, dreams, journal, rules, weekly review.
+- Decide whether this is single-user or multi-tenant. `signInWithOtp` defaults
+  to `shouldCreateUser: true`, so a public URL means open signup. The schema
+  and RLS support either; the login page currently assumes neither.
+- Replace the built-in Supabase mailer with real SMTP. The built-in one is
+  rate-limited to a handful of messages an hour and is not usable in
+  production.
 - Then the export the artifact version never got.
