@@ -352,12 +352,15 @@ export async function finishReview(formData: FormData) {
     .eq("status", "done")
     .gte("completed_at", monday().toISOString());
 
-  const { error } = await supabase.from("reviews").insert({
-    user_id: user.id,
-    week_of,
-    notes: str(formData, "notes"),
-    completed_count: count ?? 0,
-  });
+  const { error } = await supabase.from("reviews").upsert(
+    {
+      user_id: user.id,
+      week_of,
+      notes: str(formData, "notes"),
+      completed_count: count ?? 0,
+    },
+    { onConflict: "user_id,week_of" },
+  );
   fail("Could not save review", error);
   redirect("/");
 }
