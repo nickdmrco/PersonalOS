@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [usePassword, setUsePassword] = useState(false);
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,6 +18,23 @@ export default function LoginPage() {
     setBusy(true);
     setError(null);
     const supabase = createClient();
+
+    if (usePassword) {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      setBusy(false);
+      if (error) {
+        setError(error.message);
+      } else {
+        // refresh() so the server re-renders with the cookies just written.
+        router.push("/");
+        router.refresh();
+      }
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${location.origin}/auth/callback` },
@@ -62,17 +83,53 @@ export default function LoginPage() {
                 color: "var(--ink)",
               }}
             />
+            {usePassword && (
+              <>
+                <label className="label" htmlFor="password">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="rounded-md px-3 py-2 text-sm"
+                  style={{
+                    background: "var(--ground)",
+                    border: "1px solid var(--line)",
+                    color: "var(--ink)",
+                  }}
+                />
+              </>
+            )}
             <button
               type="submit"
               disabled={busy}
               className="rounded-md px-3 py-2 text-sm font-medium disabled:opacity-60"
               style={{ background: "var(--accent)", color: "var(--on-accent)" }}
             >
-              {busy ? "Sending…" : "Send sign-in link"}
+              {busy
+                ? usePassword
+                  ? "Signing in…"
+                  : "Sending…"
+                : usePassword
+                  ? "Sign in"
+                  : "Send sign-in link"}
             </button>
-            <p className="text-xs" style={{ color: "var(--ink-3)" }}>
-              No password. We email you a one-time link.
-            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setUsePassword((v) => !v);
+                setError(null);
+              }}
+              className="self-start text-xs underline underline-offset-4"
+              style={{ color: "var(--ink-3)" }}
+            >
+              {usePassword
+                ? "Use a one-time email link instead"
+                : "Use a password instead"}
+            </button>
             {error && (
               <p className="text-xs" style={{ color: "var(--bad)" }}>
                 {error}
