@@ -231,9 +231,56 @@ else on top of it.
    both the Site URL and a redirect (`https://<host>/auth/callback`). Google
    needs no change: its one redirect URI points at Supabase, not at this app,
    so it is the same for localhost, previews and production alike.
+5. Add `ALLOWED_EMAILS` (see *Who can sign in*) if a provider is enabled.
+6. **Put the functions in the same region as the database.** Settings ->
+   Functions -> Function Region. See below — this one is worth its own
+   heading.
 
 Vercel only builds on pushes it receives after the repo is connected, so if
 the project shows "No Production Deployment", push a commit to `main`.
+
+### Put the functions next to the database
+
+Vercel defaults new projects to `iad1` (Washington). If the Supabase project
+is anywhere else, every query on every render is a round trip across that gap
+— and it is not one round trip but three or so, because each invocation opens
+a fresh connection and pays the TLS handshake before the query is even sent.
+
+Measured on this app, `/inbox`, which runs exactly one query:
+
+| Function region | Function duration | Response |
+| --- | --- | --- |
+| `iad1` (Washington) | 334 ms | 490 ms |
+| `pdx1` (Portland)   | 40 ms  | 124 ms |
+
+Same commit, same query, same afternoon. Supabase is in `us-west-2` (Oregon),
+which `pdx1` sits inside, so the hop went from coast-to-coast to nothing.
+
+Match the city, not the region code: Supabase names AWS regions (`us-west-2`)
+and Vercel names cities (`pdx1` = Portland). Two traps in reading this:
+
+- The **"Received in ..."** line in a request trace is the edge that took the
+  request, not where the function ran. Those are different places, and only
+  the second one matters here. The trace names the function's region on its
+  own line ("Routed to ...").
+- A **prefetch** (`Prefetch: Yes`, or a `_rsc=` parameter with no navigation)
+  never renders the page and so never queries. It will look fast whatever the
+  region is. Only a real navigation measures anything.
+
+Changing the region needs a new deployment before it takes effect.
+
+### What is still slow, and is meant to be
+
+- **The first request after an idle spell** pays a cold start, and with it a
+  fetch of the JWKS the proxy verifies sessions against. Occasional
+  half-second responses with an outgoing call from the middleware are this,
+  not a regression. The loading skeleton exists so it reads as loading.
+- **Roughly hourly**, an access token expires and the session refresh adds a
+  round trip inside the proxy. Same shape, same non-fix.
+
+A request logged with `Status: 0` and no "Response finished" line was
+abandoned by the browser — usually a prefetch cancelled by navigating. Its
+duration is time-until-abandoned, not work done, so don't read it as latency.
 
 ## Next
 
