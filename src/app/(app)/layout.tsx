@@ -10,10 +10,13 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const count = await inboxCount();
+  // The email is already in the verified claims; getUser() would re-fetch it
+  // from the auth server just to render it in the rail.
+  const [{ data: claims }, count] = await Promise.all([
+    supabase.auth.getClaims(),
+    inboxCount(),
+  ]);
+  const email = claims?.claims.email;
 
   return (
     <div className="app">
@@ -28,7 +31,7 @@ export default async function AppLayout({
         <Nav inboxCount={count} />
 
         <div className="rail-foot">
-          <span>{user?.email}</span>
+          <span>{email}</span>
           <form action={signOut}>
             <button className="btn sm gh" type="submit">
               Sign out
