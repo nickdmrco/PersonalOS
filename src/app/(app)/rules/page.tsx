@@ -1,9 +1,9 @@
 import { retireRule, saveRule } from "@/app/actions";
 import { PageHeader } from "@/components/PageHeader";
-import { loadAll } from "@/lib/data";
+import { load } from "@/lib/data";
 
 export default async function RulesPage() {
-  const { rules } = await loadAll();
+  const { rules } = await load("rules");
 
   return (
     <>

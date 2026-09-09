@@ -1,10 +1,10 @@
 import { ReviewWizard } from "@/components/ReviewWizard";
 import { PageHeader } from "@/components/PageHeader";
-import { loadAll } from "@/lib/data";
+import { load } from "@/lib/data";
 import { ago, dkey, fmtDate, monday, parseKey, qkey } from "@/lib/dates";
 
 export default async function ReviewPage() {
-  const { goals, tasks, journal, reviews } = await loadAll();
+  const { goals, tasks, journal, reviews } = await load("goals", "tasks", "journal", "reviews");
   const mon = monday();
   const weekOf = dkey(mon);
 

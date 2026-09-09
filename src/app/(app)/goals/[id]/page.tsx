@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { GoalForm } from "@/components/GoalForm";
-import { loadAll } from "@/lib/data";
+import { load } from "@/lib/data";
 
 export default async function EditGoalPage({
   params,
@@ -8,7 +8,7 @@ export default async function EditGoalPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { goals, dreams } = await loadAll();
+  const { goals, dreams } = await load("goals", "dreams");
   const goal = goals.find((g) => g.id === id);
   if (!goal) notFound();
 

@@ -1,12 +1,12 @@
 import { GoalCard } from "@/components/GoalCard";
 import { GoalForm } from "@/components/GoalForm";
 import { PageHeader } from "@/components/PageHeader";
-import { loadAll } from "@/lib/data";
+import { load } from "@/lib/data";
 import { qkey } from "@/lib/dates";
 import { goalProgress } from "@/lib/model";
 
 export default async function GoalsPage() {
-  const { goals, tasks, dreams } = await loadAll();
+  const { goals, tasks, dreams } = await load("goals", "tasks", "dreams");
   const q = qkey();
   const active = goals.filter((g) => !g.archived && g.quarter === q);
   const past = goals.filter((g) => g.archived || g.quarter !== q);

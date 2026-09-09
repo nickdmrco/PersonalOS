@@ -2,10 +2,10 @@ import Link from "next/link";
 import { deleteDream } from "@/app/actions";
 import { DreamForm } from "@/components/DreamForm";
 import { PageHeader } from "@/components/PageHeader";
-import { loadAll } from "@/lib/data";
+import { load } from "@/lib/data";
 
 export default async function DreamsPage() {
-  const { dreams, goals } = await loadAll();
+  const { dreams, goals } = await load("dreams", "goals");
 
   return (
     <>

@@ -4,7 +4,7 @@ import { GoalCard } from "@/components/GoalCard";
 import { JournalEditor } from "@/components/JournalEditor";
 import { PageHeader } from "@/components/PageHeader";
 import { TaskRow } from "@/components/TaskRow";
-import { loadAll } from "@/lib/data";
+import { load } from "@/lib/data";
 import { DAY, daysBetween, dkey, qBounds, qkey } from "@/lib/dates";
 import { drift, ruleOfDay } from "@/lib/model";
 
@@ -13,7 +13,7 @@ function sevenDaysAgoMs() {
 }
 
 export default async function TodayPage() {
-  const { goals, tasks, journal, rules } = await loadAll();
+  const { goals, tasks, journal, rules } = await load("goals", "tasks", "journal", "rules");
   const now = new Date();
   const today = dkey(now);
   const [qs, qe] = qBounds(now);

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { DreamForm } from "@/components/DreamForm";
-import { loadAll } from "@/lib/data";
+import { load } from "@/lib/data";
 
 export default async function EditDreamPage({
   params,
@@ -8,7 +8,7 @@ export default async function EditDreamPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { dreams } = await loadAll();
+  const { dreams } = await load("dreams");
   const dream = dreams.find((d) => d.id === id);
   if (!dream) notFound();
 

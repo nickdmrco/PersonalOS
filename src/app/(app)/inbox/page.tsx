@@ -1,10 +1,10 @@
 import { dropInboxItem, inboxToGoal, inboxToRule, inboxToTask } from "@/app/actions";
 import { PageHeader } from "@/components/PageHeader";
-import { loadAll } from "@/lib/data";
+import { load } from "@/lib/data";
 import { ago } from "@/lib/dates";
 
 export default async function InboxPage() {
-  const { inbox } = await loadAll();
+  const { inbox } = await load("inbox");
 
   return (
     <>

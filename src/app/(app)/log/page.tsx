@@ -1,11 +1,11 @@
 import { promoteFriction } from "@/app/actions";
 import { JournalEditor } from "@/components/JournalEditor";
 import { PageHeader } from "@/components/PageHeader";
-import { loadAll } from "@/lib/data";
+import { load } from "@/lib/data";
 import { DAY, dkey, fmtDate } from "@/lib/dates";
 
 export default async function LogPage() {
-  const { journal } = await loadAll();
+  const { journal } = await load("journal");
   const written = journal.filter((e) => e.entry || e.wins || e.friction);
 
   // Longest run of consecutive days ending today or yesterday.

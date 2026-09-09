@@ -27,10 +27,13 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  // Do not remove: this refreshes the auth token on every request.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Verifies the JWT locally against the project's public signing key, and
+  // still refreshes the token when it is close to expiring. getUser() would
+  // do the same but costs a round trip to the auth server on every request,
+  // prefetches included — which is most of what navigation used to spend.
+  // This is the optimistic check; requireUser() and RLS remain the real gate.
+  const { data } = await supabase.auth.getClaims();
+  const signedIn = Boolean(data?.claims);
 
   // A fresh redirect response would drop any rotated auth cookies that
   // getUser() just wrote onto `response`, signing the user back out.
@@ -45,8 +48,8 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isPublic = PUBLIC.some((p) => path === p || path.startsWith(`${p}/`));
 
-  if (!user && !isPublic) return redirectTo("/login");
-  if (user && path === "/login") return redirectTo("/");
+  if (!signedIn && !isPublic) return redirectTo("/login");
+  if (signedIn && path === "/login") return redirectTo("/");
 
   return response;
 }
