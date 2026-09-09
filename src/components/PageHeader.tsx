@@ -1,4 +1,4 @@
-import { capture } from "@/app/actions";
+import { CaptureBar } from "@/components/CaptureBar";
 
 export function PageHeader({ title, meta }: { title: string; meta: string }) {
   return (
@@ -9,17 +9,7 @@ export function PageHeader({ title, meta }: { title: string; meta: string }) {
           <div className="meta">{meta}</div>
         </div>
       </div>
-      <form action={capture} className="capture">
-        <input
-          name="text"
-          type="text"
-          autoComplete="off"
-          placeholder="Capture anything — it lands in the inbox, unsorted, no decisions required"
-        />
-        <button className="btn pri" type="submit">
-          Capture
-        </button>
-      </form>
+      <CaptureBar />
     </>
   );
 }

@@ -1,3 +1,6 @@
+"use client";
+
+import { useOptimistic } from "react";
 import { deleteTask, toggleFocus, toggleTask } from "@/app/actions";
 import { ago, dkey, fmtDate } from "@/lib/dates";
 import { FOCUS_CAP } from "@/lib/model";
@@ -13,14 +16,31 @@ export function TaskRow({
   /** All focus slots are taken, so this task can be unstarred but not starred. */
   focusFull?: boolean;
 }) {
-  const done = task.status === "done";
+  // The row mirrors the click immediately and reconciles when the server
+  // answers. Every mutation here revalidates the layout, so the truth arrives
+  // a whole page render later — long enough that an unacknowledged tick reads
+  // as the app having ignored you. React holds these until the action settles,
+  // then falls back to the props, so a rejected write corrects itself.
+  const [done, setDone] = useOptimistic(task.status === "done");
+  const [focus, setFocus] = useOptimistic(task.focus);
+
   const goal = task.goal_id ? goals.find((g) => g.id === task.goal_id) : null;
   const overdue = !done && task.due !== null && task.due < dkey();
   const hasSub = Boolean(goal || task.due || task.completed_at);
 
+  async function submitToggle(formData: FormData) {
+    setDone(!done);
+    await toggleTask(formData);
+  }
+
+  async function submitFocus(formData: FormData) {
+    setFocus(!focus);
+    await toggleFocus(formData);
+  }
+
   return (
     <div className={`task${done ? " done" : ""}`}>
-      <form action={toggleTask}>
+      <form action={submitToggle}>
         <input type="hidden" name="id" value={task.id} />
         <input type="hidden" name="done" value={String(done)} />
         <button
@@ -59,16 +79,16 @@ export function TaskRow({
       </div>
 
       {!done && (
-        <form action={toggleFocus}>
+        <form action={submitFocus}>
           <input type="hidden" name="id" value={task.id} />
-          <input type="hidden" name="focus" value={String(task.focus)} />
+          <input type="hidden" name="focus" value={String(focus)} />
           <button
             type="submit"
-            className={`star${task.focus ? " on" : ""}`}
-            disabled={!task.focus && focusFull}
-            aria-label={task.focus ? "Remove from focus" : "Add to focus"}
+            className={`star${focus ? " on" : ""}`}
+            disabled={!focus && focusFull}
+            aria-label={focus ? "Remove from focus" : "Add to focus"}
             title={
-              !task.focus && focusFull
+              !focus && focusFull
                 ? `Focus is full at ${FOCUS_CAP} — unstar something first`
                 : "Focus"
             }
