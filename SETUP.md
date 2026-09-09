@@ -70,14 +70,83 @@ Supabase dashboard -> Authentication -> URL Configuration:
 
 When you deploy, add the Vercel URL to both.
 
-## 5. Run it
+## 5. Enable Google sign-in
+
+Two consoles, in this order. Google needs to know Supabase; Supabase needs to
+know Google. The app itself needs no new environment variables — the client
+secret lives in Supabase and never reaches the browser.
+
+### 5a. Create the Google OAuth client
+
+1. console.cloud.google.com -> create a project (or pick one).
+2. APIs & Services -> OAuth consent screen. Pick **External** unless you have
+   a Workspace org. Fill in app name, support email, developer email. You can
+   leave it in **Testing** — then only accounts you list under *Test users*
+   can sign in, which is a decent stand-in for the single-user question below.
+   Publishing to Production opens it to any Google account.
+3. Scopes: the defaults are enough. Supabase asks for `email`, `profile` and
+   `openid`; none of them are sensitive, so there is no verification review.
+4. Credentials -> Create credentials -> **OAuth client ID** -> Web application.
+5. Under *Authorised redirect URIs* add exactly one entry — Supabase's
+   callback, not this app's:
+
+   ```
+   https://<project-ref>.supabase.co/auth/v1/callback
+   ```
+
+   `<project-ref>` is the subdomain of the Project URL from step 2. Get this
+   wrong and Google refuses with `redirect_uri_mismatch` before Supabase is
+   ever reached. *Authorised JavaScript origins* can stay empty: the exchange
+   happens server-side, between Supabase and Google.
+6. Copy the **Client ID** and **Client secret**.
+
+### 5b. Hand them to Supabase
+
+Supabase dashboard -> Authentication -> Providers -> Google:
+
+- Enable it, paste the client ID and secret, save.
+- Leave *Skip nonce check* off.
+
+Then check Authentication -> URL Configuration again (step 4). The
+`redirectTo` this app sends is `<origin>/auth/callback`, and Supabase refuses
+any redirect target not on that list — so localhost and the Vercel URL both
+need to be there before Google works in either place.
+
+### How the round trip actually goes
+
+`signInWithOAuth` never signs anyone in by itself; it just hands the browser
+to Google. The session is created on the way back:
+
+```
+/login  ->  Google consent  ->  <project-ref>.supabase.co/auth/v1/callback
+        ->  /auth/callback?code=...  ->  exchangeCodeForSession  ->  /
+```
+
+That last hop is the same route the magic link has always used. It is PKCE
+both times, and `createBrowserClient` keeps the code verifier in a cookie
+rather than localStorage, which is the reason a *server* route can complete
+an exchange the *browser* started. If you ever swap that for the plain
+`supabase-js` client, Google sign-in breaks here and nowhere else.
+
+A refused consent comes back with `?error=access_denied` and no code at all,
+so `/auth/callback` checks for that before it looks for a code, and `/login`
+maps the code to a sentence. Google's own error text is never rendered.
+
+> **Note.** Enabling Google means any Google account that reaches the consent
+> screen can create an account here. `shouldCreateUser: false` only governs
+> the magic link — it does not apply to OAuth. Until the single-user question
+> in *Next* is settled, keep the consent screen in **Testing** with yourself
+> as the only test user.
+
+## 6. Run it
 
 ```powershell
 npm run dev
 ```
 
-Open http://localhost:3000. You'll be bounced to `/login`. Enter your email,
-click the link Supabase mails you, and you should land on the task list.
+Open http://localhost:3000. You'll be bounced to `/login`. Either continue
+with Google, or enter your email and click the link Supabase mails you.
+Both land on the task list.
 
 ---
 
@@ -93,13 +162,14 @@ src/
     model.ts                 progress, drift, rule-of-day: the app's opinions
     dates.ts                 local-day keys, quarters, week boundaries
     types.ts                 row types
-  components/                rail, task rows, goal cards, review wizard, editors
+  components/                rail, sign-in form, task rows, goal cards,
+                             review wizard, editors
   app/
     layout.tsx               fonts, metadata
     globals.css              design tokens, light + dark
     actions.ts               every server action
-    login/page.tsx           magic link, with a password fallback
-    auth/callback/route.ts   code -> session exchange
+    login/page.tsx           reads ?error, renders the form
+    auth/callback/route.ts   code -> session exchange, for Google and the link
     (app)/                   the signed-in shell and every view
       page.tsx               today: focus, due, rule of the day
       inbox/ log/ review/    daily and weekly
@@ -128,7 +198,9 @@ else on top of it.
    one that would be a Secret — nothing here uses it, and it must never carry
    a `NEXT_PUBLIC_` prefix.
 4. Add the deployed URL to Supabase -> Authentication -> URL Configuration, as
-   both the Site URL and a redirect (`https://<host>/auth/callback`).
+   both the Site URL and a redirect (`https://<host>/auth/callback`). Google
+   needs no change: its one redirect URI points at Supabase, not at this app,
+   so it is the same for localhost, previews and production alike.
 
 Vercel only builds on pushes it receives after the repo is connected, so if
 the project shows "No Production Deployment", push a commit to `main`.
@@ -137,7 +209,12 @@ the project shows "No Production Deployment", push a commit to `main`.
 
 - Decide whether this is single-user or multi-tenant. `signInWithOtp` defaults
   to `shouldCreateUser: true`, so a public URL means open signup. The schema
-  and RLS support either; the login page currently assumes neither.
+  and RLS support either; the login page currently assumes neither. Google
+  widens this: `shouldCreateUser` has no OAuth equivalent, so closing signup
+  properly means gating on the server — an allowlist of addresses checked in
+  `/auth/callback`, or leaving the consent screen in Testing. Google's own
+  `hd` parameter only restricts Workspace domains, which a gmail.com address
+  is not.
 - Replace the built-in Supabase mailer with real SMTP. The built-in one is
   rate-limited to a handful of messages an hour and is not usable in
   production.
