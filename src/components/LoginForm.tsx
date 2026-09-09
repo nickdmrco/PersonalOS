@@ -7,12 +7,40 @@ import { createClient } from "@/lib/supabase/client";
 // The callback route hands back a short code rather than the provider's own
 // text, so nothing Google writes is rendered here. Anything unrecognised
 // falls through to FALLBACK.
+const NO_ACCOUNT =
+  "There is no account for that address. This is a one-person system — sign-ups are closed.";
+
 const MESSAGES: Record<string, string> = {
   link_invalid: "That sign-in link has expired or was already used. Ask for a new one.",
+  not_invited: NO_ACCOUNT,
   access_denied: "Google sign-in was cancelled.",
   server_error: "Google couldn't finish the sign-in. Try again in a moment.",
   temporarily_unavailable: "Google sign-in is unavailable right now. Try again in a moment.",
 };
+
+/**
+ * Supabase error codes worth a sentence of our own. `otp_disabled` is what
+ * `shouldCreateUser: false` returns for an address with no account, so it is
+ * the one you hit by mistyping your own email — the raw message ("Signups not
+ * allowed for otp") reads like a fault in the app rather than a typo.
+ */
+const AUTH_MESSAGES: Record<string, string> = {
+  otp_disabled: NO_ACCOUNT,
+  signup_disabled: NO_ACCOUNT,
+  user_not_found: NO_ACCOUNT,
+  invalid_credentials: "That email and password don't match.",
+  email_not_confirmed: "Confirm your address first — check for the link.",
+  over_email_send_rate_limit:
+    "Too many sign-in emails just now. Wait a few minutes and try again.",
+  over_request_rate_limit:
+    "Too many attempts just now. Wait a few minutes and try again.",
+};
+
+/** Falls back to Supabase's own text, which is better than nothing when the
+ *  code is one we haven't given a sentence to. */
+function explain(error: { code?: string; message: string }) {
+  return (error.code && AUTH_MESSAGES[error.code]) || error.message;
+}
 
 const FALLBACK = "That sign-in didn't go through. Try again.";
 
@@ -81,7 +109,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
       });
       setBusy(false);
       if (error) {
-        setError(error.message);
+        setError(explain(error));
       } else {
         // refresh() so the server re-renders with the cookies just written.
         router.push("/");
@@ -92,10 +120,15 @@ export function LoginForm({ initialError }: { initialError?: string }) {
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${location.origin}/auth/callback` },
+      options: {
+        // Without this the link doubles as a sign-up form: anyone who finds
+        // the URL gets an account. There is one person here.
+        shouldCreateUser: false,
+        emailRedirectTo: `${location.origin}/auth/callback`,
+      },
     });
     setBusy(false);
-    if (error) setError(error.message);
+    if (error) setError(explain(error));
     else setSent(true);
   }
 

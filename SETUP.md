@@ -133,10 +133,10 @@ so `/auth/callback` checks for that before it looks for a code, and `/login`
 maps the code to a sentence. Google's own error text is never rendered.
 
 > **Note.** Enabling Google means any Google account that reaches the consent
-> screen can create an account here. `shouldCreateUser: false` only governs
-> the magic link — it does not apply to OAuth. Until the single-user question
-> in *Next* is settled, keep the consent screen in **Testing** with yourself
-> as the only test user.
+> screen can sign in here. `shouldCreateUser: false` only governs the email
+> link — there is no OAuth equivalent. **Set `ALLOWED_EMAILS` before you turn
+> Google on** (see *Who can sign in* below); belt and braces is to also leave
+> the consent screen in **Testing** with yourself as the only test user.
 
 ## 6. Run it
 
@@ -179,6 +179,36 @@ supabase/migrations/
   0002_review_once_per_week.sql
 ```
 
+## Who can sign in
+
+Closed by default, on both routes:
+
+- The email link passes `shouldCreateUser: false`, so it signs existing
+  accounts in and never creates one. An unknown address gets `otp_disabled`
+  back, which the login page renders as "there is no account for that
+  address" rather than Supabase's "Signups not allowed for otp".
+- `ALLOWED_EMAILS` — a comma-separated list, checked in `/auth/callback`,
+  which every method returns through. An address that isn't on it is signed
+  straight back out. Leave it empty and only the first rule applies, which is
+  fine until you enable a provider and no longer fine after.
+
+```
+ALLOWED_EMAILS=you@example.com
+```
+
+Set it in `.env.local` and in Vercel (Production, Preview and Development),
+as **Config**. It is deliberately not `NEXT_PUBLIC_` — it must not ship to
+the browser.
+
+To make your own first account, with sign-ups closed: Supabase dashboard ->
+Authentication -> Users -> **Add user**. There is no self-serve path, which
+is the point.
+
+The login page says plainly when an address has no account. That does tell a
+stranger whether a given address is registered — a fair trade here, where the
+alternative is you mistyping your own address and waiting for a link that was
+never sent, and where nobody can sign up regardless.
+
 ## Verifying RLS actually works
 
 Worth doing once, before you trust it with real entries. Sign up a second
@@ -207,15 +237,7 @@ the project shows "No Production Deployment", push a commit to `main`.
 
 ## Next
 
-- Decide whether this is single-user or multi-tenant. `signInWithOtp` defaults
-  to `shouldCreateUser: true`, so a public URL means open signup. The schema
-  and RLS support either; the login page currently assumes neither. Google
-  widens this: `shouldCreateUser` has no OAuth equivalent, so closing signup
-  properly means gating on the server — an allowlist of addresses checked in
-  `/auth/callback`, or leaving the consent screen in Testing. Google's own
-  `hd` parameter only restricts Workspace domains, which a gmail.com address
-  is not.
-- Replace the built-in Supabase mailer with real SMTP. The built-in one is
-  rate-limited to a handful of messages an hour and is not usable in
-  production.
+- Real SMTP, if you ever want mail that isn't rate-limited to a handful an
+  hour. With sign-ups closed and one user, the built-in mailer may be enough
+  forever.
 - Then the export the artifact version never got.
