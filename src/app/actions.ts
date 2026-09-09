@@ -23,13 +23,22 @@ async function focusHeld(supabase: DB) {
   return count ?? 0;
 }
 
+/**
+ * The signed-in user's id, from claims verified locally against the project's
+ * signing key. getUser() called the auth server instead — a network round trip
+ * in front of the write on every one of these, on the click path.
+ *
+ * The id is only ever used to stamp `user_id` on an insert, and every table's
+ * RLS policy carries `with check (auth.uid() = user_id)`, so Postgres rejects
+ * a row claiming someone else's id no matter what is passed here. The database
+ * is what enforces ownership; this only decides whether to bounce to /login.
+ */
 async function requireUser() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  return { supabase, user };
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims.sub;
+  if (!userId) redirect("/login");
+  return { supabase, userId };
 }
 
 function refresh() {
@@ -53,7 +62,7 @@ function fail(what: string, error: { message: string } | null) {
 export async function addTask(formData: FormData) {
   const title = str(formData, "title");
   if (!title) return;
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
 
   // Starring on creation is still starring, so it takes the same slot check.
   const starred =
@@ -61,7 +70,7 @@ export async function addTask(formData: FormData) {
 
   const { error } = await supabase.from("tasks").insert({
     title,
-    user_id: user.id,
+    user_id: userId,
     goal_id: str(formData, "goal_id") || null,
     due: str(formData, "due") || null,
     focus: starred,
@@ -122,10 +131,10 @@ export async function deleteTask(formData: FormData) {
 export async function capture(formData: FormData) {
   const text = str(formData, "text");
   if (!text) return;
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
   const { error } = await supabase
     .from("inbox_items")
-    .insert({ text, user_id: user.id });
+    .insert({ text, user_id: userId });
   fail("Could not capture", error);
   refresh();
 }
@@ -143,10 +152,10 @@ export async function inboxToTask(formData: FormData) {
   const id = str(formData, "id");
   const text = str(formData, "text");
   if (!id || !text) return;
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
   const { error } = await supabase
     .from("tasks")
-    .insert({ title: text, user_id: user.id });
+    .insert({ title: text, user_id: userId });
   fail("Could not create task", error);
   const { error: dropped } = await supabase
     .from("inbox_items")
@@ -160,11 +169,11 @@ export async function inboxToRule(formData: FormData) {
   const id = str(formData, "id");
   const text = str(formData, "text");
   if (!id || !text) return;
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
   const { error } = await supabase.from("rules").insert({
     text,
     origin: `From inbox · ${fmtDate(dkey())}`,
-    user_id: user.id,
+    user_id: userId,
   });
   fail("Could not create rule", error);
   const { error: dropped } = await supabase
@@ -179,10 +188,10 @@ export async function inboxToGoal(formData: FormData) {
   const id = str(formData, "id");
   const text = str(formData, "text");
   if (!id || !text) return;
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
   const { error } = await supabase
     .from("goals")
-    .insert({ title: text, quarter: qkey(), user_id: user.id });
+    .insert({ title: text, quarter: qkey(), user_id: userId });
   fail("Could not create goal", error);
   const { error: dropped } = await supabase
     .from("inbox_items")
@@ -198,7 +207,7 @@ export async function saveGoal(formData: FormData) {
   const id = str(formData, "id");
   const title = str(formData, "title");
   if (!title) return;
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
 
   // progress_updated_at is deliberately absent: it is the drift clock, and
   // rewording a goal is not evidence the goal moved. Touching it here meant
@@ -217,7 +226,7 @@ export async function saveGoal(formData: FormData) {
     ? await supabase.from("goals").update(body).eq("id", id)
     : await supabase
         .from("goals")
-        .insert({ ...body, quarter: qkey(), user_id: user.id });
+        .insert({ ...body, quarter: qkey(), user_id: userId });
 
   fail("Could not save goal", error);
   redirect("/goals");
@@ -251,12 +260,12 @@ export async function saveDream(formData: FormData) {
   const id = str(formData, "id");
   const title = str(formData, "title");
   if (!title) return;
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
   const body = { title, body: str(formData, "body") };
 
   const { error } = id
     ? await supabase.from("dreams").update(body).eq("id", id)
-    : await supabase.from("dreams").insert({ ...body, user_id: user.id });
+    : await supabase.from("dreams").insert({ ...body, user_id: userId });
 
   fail("Could not save dream", error);
   redirect("/dreams");
@@ -277,12 +286,12 @@ export async function saveRule(formData: FormData) {
   const id = str(formData, "id");
   const text = str(formData, "text");
   if (!text) return;
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
   const body = { text, origin: str(formData, "origin") };
 
   const { error } = id
     ? await supabase.from("rules").update(body).eq("id", id)
-    : await supabase.from("rules").insert({ ...body, user_id: user.id });
+    : await supabase.from("rules").insert({ ...body, user_id: userId });
 
   fail("Could not save rule", error);
   redirect("/rules");
@@ -303,10 +312,10 @@ export async function retireRule(formData: FormData) {
 
 export async function saveJournal(formData: FormData) {
   const entry_date = str(formData, "entry_date") || dkey();
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
   const { error } = await supabase.from("journal_entries").upsert(
     {
-      user_id: user.id,
+      user_id: userId,
       entry_date,
       entry: str(formData, "entry"),
       wins: str(formData, "wins"),
@@ -324,12 +333,12 @@ export async function promoteFriction(formData: FormData) {
   const date = str(formData, "date");
   const friction = str(formData, "friction");
   if (!friction) return;
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
   const excerpt = friction.length > 140 ? `${friction.slice(0, 140)}…` : friction;
   const { error } = await supabase.from("rules").insert({
     text: friction,
     origin: `From friction logged ${fmtDate(date)} · "${excerpt}"`,
-    user_id: user.id,
+    user_id: userId,
   });
   fail("Could not promote friction", error);
   redirect("/rules");
@@ -338,18 +347,28 @@ export async function promoteFriction(formData: FormData) {
 /* ----------------------------------------------------------------- review */
 
 export async function finishReview(formData: FormData) {
-  const { supabase, user } = await requireUser();
+  const { supabase, userId } = await requireUser();
   const week_of = dkey(monday());
 
-  // Goal values updated during the review.
+  // Goal values updated during the review, issued together rather than awaited
+  // one at a time: this was a round trip per goal, in series, at the front of
+  // the click. A quarter with five numeric goals paid all five before the rest
+  // of the review had started. The builders are lazy, so nothing is sent until
+  // Promise.all subscribes to them.
+  const movedAt = new Date().toISOString();
+  const goalUpdates = [];
   for (const [key, value] of formData.entries()) {
     if (!key.startsWith("goalnum:")) continue;
     const current = parseFloat(String(value));
     if (Number.isNaN(current)) continue;
-    const { error } = await supabase
-      .from("goals")
-      .update({ current, progress_updated_at: new Date().toISOString() })
-      .eq("id", key.slice("goalnum:".length));
+    goalUpdates.push(
+      supabase
+        .from("goals")
+        .update({ current, progress_updated_at: movedAt })
+        .eq("id", key.slice("goalnum:".length)),
+    );
+  }
+  for (const { error } of await Promise.all(goalUpdates)) {
     fail("Could not update goal progress", error);
   }
 
@@ -367,7 +386,7 @@ export async function finishReview(formData: FormData) {
     nextTasks.push({
       title,
       goal_id: goalId === "none" ? null : goalId,
-      user_id: user.id,
+      user_id: userId,
       focus: free > 0,
     });
     if (free > 0) free--;
@@ -383,7 +402,7 @@ export async function finishReview(formData: FormData) {
     const { error } = await supabase.from("rules").insert({
       text: newrule,
       origin: `Written during the weekly review · ${fmtDate(week_of)}`,
-      user_id: user.id,
+      user_id: userId,
     });
     fail("Could not save the new rule", error);
   }
@@ -396,7 +415,7 @@ export async function finishReview(formData: FormData) {
 
   const { error } = await supabase.from("reviews").upsert(
     {
-      user_id: user.id,
+      user_id: userId,
       week_of,
       notes: str(formData, "notes"),
       completed_count: count ?? 0,
