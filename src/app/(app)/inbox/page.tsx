@@ -1,5 +1,6 @@
 import { dropInboxItem, inboxToGoal, inboxToRule, inboxToTask } from "@/app/actions";
 import { PageHeader } from "@/components/PageHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { load } from "@/lib/data";
 import { ago } from "@/lib/dates";
 
@@ -40,21 +41,21 @@ export default async function InboxPage() {
                   <form action={inboxToTask}>
                     <input type="hidden" name="id" value={item.id} />
                     <input type="hidden" name="text" value={item.text} />
-                    <button className="btn sm" type="submit">Task</button>
+                    <SubmitButton className="btn sm" pendingLabel="…">Task</SubmitButton>
                   </form>
                   <form action={inboxToGoal}>
                     <input type="hidden" name="id" value={item.id} />
                     <input type="hidden" name="text" value={item.text} />
-                    <button className="btn sm" type="submit">Goal</button>
+                    <SubmitButton className="btn sm" pendingLabel="…">Goal</SubmitButton>
                   </form>
                   <form action={inboxToRule}>
                     <input type="hidden" name="id" value={item.id} />
                     <input type="hidden" name="text" value={item.text} />
-                    <button className="btn sm" type="submit">Rule</button>
+                    <SubmitButton className="btn sm" pendingLabel="…">Rule</SubmitButton>
                   </form>
                   <form action={dropInboxItem}>
                     <input type="hidden" name="id" value={item.id} />
-                    <button className="btn sm gh" type="submit">Drop</button>
+                    <SubmitButton className="btn sm gh" pendingLabel="…">Drop</SubmitButton>
                   </form>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import { saveGoal } from "@/app/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 import type { Dream, Goal } from "@/lib/types";
 
 export function GoalForm({ goal, dreams }: { goal?: Goal; dreams: Dream[] }) {
@@ -66,7 +67,7 @@ export function GoalForm({ goal, dreams }: { goal?: Goal; dreams: Dream[] }) {
         </select>
       </div>
 
-      <button className="btn pri" type="submit">Save goal</button>
+      <SubmitButton className="btn pri" pendingLabel="Saving…">Save goal</SubmitButton>
     </form>
   );
 }

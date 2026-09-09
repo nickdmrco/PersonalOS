@@ -1,4 +1,5 @@
 import { addTask } from "@/app/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 import { FOCUS_CAP } from "@/lib/model";
 import type { Goal } from "@/lib/types";
 
@@ -57,9 +58,9 @@ export function TaskForm({ goals, focusLeft }: { goals: Goal[]; focusLeft: numbe
       </div>
 
       <div className="rowline">
-        <button className="btn pri" type="submit">
+        <SubmitButton className="btn pri" pendingLabel="Adding…">
           Add task
-        </button>
+        </SubmitButton>
         {focusLeft > 0 ? (
           <label
             className="num"

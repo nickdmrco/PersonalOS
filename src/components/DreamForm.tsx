@@ -1,4 +1,5 @@
 import { saveDream } from "@/app/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 import type { Dream } from "@/lib/types";
 
 export function DreamForm({ dream }: { dream?: Dream }) {
@@ -24,7 +25,7 @@ export function DreamForm({ dream }: { dream?: Dream }) {
         </div>
         <textarea id="d-body" name="body" style={{ minHeight: 150 }} defaultValue={dream?.body} />
       </div>
-      <button className="btn pri" type="submit">Save</button>
+      <SubmitButton className="btn pri" pendingLabel="Saving…">Save</SubmitButton>
     </form>
   );
 }

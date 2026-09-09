@@ -1,6 +1,7 @@
 import { promoteFriction } from "@/app/actions";
 import { JournalEditor } from "@/components/JournalEditor";
 import { PageHeader } from "@/components/PageHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { load } from "@/lib/data";
 import { fmtDate } from "@/lib/dates";
 import { isWritten, journalStreak } from "@/lib/model";
@@ -56,9 +57,9 @@ export default async function LogPage() {
                     <form action={promoteFriction}>
                       <input type="hidden" name="date" value={e.entry_date} />
                       <input type="hidden" name="friction" value={e.friction} />
-                      <button className="btn sm gh" type="submit">
+                      <SubmitButton className="btn sm gh" pendingLabel="Promoting…">
                         Promote to rule
-                      </button>
+                      </SubmitButton>
                     </form>
                   </>
                 )}

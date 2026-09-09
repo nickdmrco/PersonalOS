@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
+import { SubmitButton } from "@/components/SubmitButton";
 import { signOut } from "@/app/actions";
 import { inboxCount } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
@@ -33,9 +34,9 @@ export default async function AppLayout({
         <div className="rail-foot">
           <span>{email}</span>
           <form action={signOut}>
-            <button className="btn sm gh" type="submit">
+            <SubmitButton className="btn sm gh" pendingLabel="Signing out…">
               Sign out
-            </button>
+            </SubmitButton>
           </form>
         </div>
       </aside>

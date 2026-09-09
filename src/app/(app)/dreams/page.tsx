@@ -2,6 +2,7 @@ import Link from "next/link";
 import { deleteDream } from "@/app/actions";
 import { DreamForm } from "@/components/DreamForm";
 import { PageHeader } from "@/components/PageHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { load } from "@/lib/data";
 
 export default async function DreamsPage() {
@@ -53,7 +54,7 @@ export default async function DreamsPage() {
                     <Link className="btn sm" href={`/dreams/${d.id}`}>Edit</Link>
                     <form action={deleteDream}>
                       <input type="hidden" name="id" value={d.id} />
-                      <button className="btn sm gh" type="submit">Delete</button>
+                      <SubmitButton className="btn sm gh" pendingLabel="Deleting…">Delete</SubmitButton>
                     </form>
                   </div>
                 </div>

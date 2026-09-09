@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { finishReview } from "@/app/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 import { fmtDate } from "@/lib/dates";
 import { FOCUS_CAP, drift, goalProgress } from "@/lib/model";
 import type { Goal, JournalEntry, Task } from "@/lib/types";
@@ -203,9 +204,9 @@ export function ReviewWizard({
               Next — {STEPS[step + 1]}
             </button>
           ) : (
-            <button type="submit" className="btn pri">
+            <SubmitButton className="btn pri" pendingLabel="Finishing…">
               Finish review
-            </button>
+            </SubmitButton>
           )}
         </div>
       </div>

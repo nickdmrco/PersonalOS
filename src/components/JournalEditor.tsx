@@ -2,6 +2,7 @@
 
 import { useRef, useState, useSyncExternalStore } from "react";
 import { promoteFriction, saveJournal } from "@/app/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 import { dkey } from "@/lib/dates";
 import type { JournalEntry } from "@/lib/types";
 
@@ -110,9 +111,9 @@ export function JournalEditor({ entries }: { entries: JournalEntry[] }) {
           <form action={promoteFriction}>
             <input type="hidden" name="date" value={date} />
             <input type="hidden" name="friction" value={frictionOnRecord} />
-            <button className="btn sm" type="submit">
+            <SubmitButton className="btn sm" pendingLabel="Promoting…">
               Promote this friction to a standing rule
-            </button>
+            </SubmitButton>
           </form>
         )}
       </div>

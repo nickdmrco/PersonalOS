@@ -2,6 +2,7 @@
 
 import { useOptimistic } from "react";
 import { deleteTask, toggleFocus, toggleTask } from "@/app/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 import { ago, dkey, fmtDate } from "@/lib/dates";
 import { FOCUS_CAP } from "@/lib/model";
 import type { Goal, Task } from "@/lib/types";
@@ -100,9 +101,9 @@ export function TaskRow({
 
       <form action={deleteTask}>
         <input type="hidden" name="id" value={task.id} />
-        <button type="submit" className="btn sm gh" aria-label={`Delete ${task.title}`}>
+        <SubmitButton className="btn sm gh" aria-label={`Delete ${task.title}`} pendingLabel="…">
           Delete
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

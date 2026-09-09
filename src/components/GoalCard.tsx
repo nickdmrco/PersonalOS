@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { addTask, deleteGoal, logGoalProgress } from "@/app/actions";
+import { SubmitButton } from "@/components/SubmitButton";
 import { ago } from "@/lib/dates";
 import { drift, goalProgress, lastMovement } from "@/lib/model";
 import type { Goal, Task } from "@/lib/types";
@@ -53,9 +54,9 @@ export function GoalCard({
             </Link>
             <form action={deleteGoal}>
               <input type="hidden" name="id" value={goal.id} />
-              <button className="btn sm gh" type="submit">
+              <SubmitButton className="btn sm gh" pendingLabel="Deleting…">
                 Delete
-              </button>
+              </SubmitButton>
             </form>
           </div>
 
@@ -78,9 +79,9 @@ export function GoalCard({
                 aria-label="Due date, optional"
                 style={{ width: "auto" }}
               />
-              <button className="btn sm pri" type="submit">
+              <SubmitButton className="btn sm pri" pendingLabel="Adding…">
                 Add
-              </button>
+              </SubmitButton>
             </form>
           </details>
 
@@ -102,9 +103,9 @@ export function GoalCard({
                 <span className="num">
                   of {goal.target} {goal.unit}
                 </span>
-                <button className="btn sm pri" type="submit">
+                <SubmitButton className="btn sm pri" pendingLabel="Saving…">
                   Save
-                </button>
+                </SubmitButton>
               </form>
             </details>
           )}

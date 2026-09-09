@@ -1,5 +1,6 @@
 import { retireRule, saveRule } from "@/app/actions";
 import { PageHeader } from "@/components/PageHeader";
+import { SubmitButton } from "@/components/SubmitButton";
 import { load } from "@/lib/data";
 
 export default async function RulesPage() {
@@ -43,7 +44,7 @@ export default async function RulesPage() {
               </div>
               <input id="rule-origin" name="origin" type="text" />
             </div>
-            <button className="btn pri" type="submit">Save rule</button>
+            <SubmitButton className="btn pri" pendingLabel="Saving…">Save rule</SubmitButton>
           </form>
         </div>
       </details>
@@ -64,7 +65,7 @@ export default async function RulesPage() {
                   {r.origin && <div className="or">{r.origin}</div>}
                   <form action={retireRule} style={{ marginTop: 8 }}>
                     <input type="hidden" name="id" value={r.id} />
-                    <button className="btn sm gh" type="submit">Retire</button>
+                    <SubmitButton className="btn sm gh" pendingLabel="Retiring…">Retire</SubmitButton>
                   </form>
                 </div>
               </div>
