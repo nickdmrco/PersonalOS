@@ -9,19 +9,18 @@ Row Level Security. There is no admin bypass path to user data.
 
 ---
 
-## 1. Finish the install (run this natively, in PowerShell)
+## 1. Install (run this natively, in PowerShell)
 
-The dependency install was started from the Linux bridge and is glacial there —
-npm's thousands of small writes onto NTFS through a mount. Run it natively
-instead; it takes about thirty seconds.
+Run npm natively rather than through the Linux bridge — thousands of small
+writes onto NTFS through a mount is glacial. Natively it takes about a minute.
 
 ```powershell
 cd ~\Projects\dead-reckoning
-npm install @supabase/supabase-js @supabase/ssr
+npm install
 ```
 
-That also repairs `package.json`, which the interrupted run left without the
-two Supabase entries.
+If a previous install was interrupted, delete `node_modules` first; a partial
+tree leaves `next` without its `package.json` and `npm run dev` won't start.
 
 ## 2. Create the Supabase project
 
@@ -73,7 +72,7 @@ click the link Supabase mails you, and you should land on the task list.
 
 ```
 src/
-  middleware.ts              session refresh + route guard
+  proxy.ts                   session refresh + route guard
   lib/supabase/client.ts     browser client
   lib/supabase/server.ts     server client (cookie-backed)
   app/

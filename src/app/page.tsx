@@ -8,6 +8,10 @@ type Task = {
   completed_at: string | null;
 };
 
+function weekAgoISO() {
+  return new Date(Date.now() - 7 * 86400000).toISOString();
+}
+
 function ago(iso: string | null) {
   if (!iso) return "";
   const n = Math.max(
@@ -23,7 +27,7 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+  const weekAgo = weekAgoISO();
 
   const { data: open } = await supabase
     .from("tasks")

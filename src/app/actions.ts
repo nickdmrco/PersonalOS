@@ -17,7 +17,10 @@ export async function addTask(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   if (!title) return;
   const { supabase, user } = await requireUser();
-  await supabase.from("tasks").insert({ title, user_id: user.id });
+  const { error } = await supabase
+    .from("tasks")
+    .insert({ title, user_id: user.id });
+  if (error) throw new Error(`Could not add task: ${error.message}`);
   revalidatePath("/");
 }
 
@@ -27,7 +30,7 @@ export async function toggleTask(formData: FormData) {
   if (!id) return;
   const { supabase } = await requireUser();
   // RLS restricts this to the caller's own rows; no user_id filter needed.
-  await supabase
+  const { error } = await supabase
     .from("tasks")
     .update(
       done
@@ -35,6 +38,7 @@ export async function toggleTask(formData: FormData) {
         : { status: "done", completed_at: new Date().toISOString(), focus: false },
     )
     .eq("id", id);
+  if (error) throw new Error(`Could not update task: ${error.message}`);
   revalidatePath("/");
 }
 
@@ -42,7 +46,8 @@ export async function deleteTask(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
   const { supabase } = await requireUser();
-  await supabase.from("tasks").delete().eq("id", id);
+  const { error } = await supabase.from("tasks").delete().eq("id", id);
+  if (error) throw new Error(`Could not delete task: ${error.message}`);
   revalidatePath("/");
 }
 
