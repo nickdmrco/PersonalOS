@@ -2,6 +2,13 @@ import { DAY, localDayIndex } from "./dates";
 import type { DriftState, Goal, Rule, Task } from "./types";
 
 /**
+ * The one hard limit in the system. Three is not a suggestion: a focus list
+ * that grows to fit whatever you star is the backlog again, wearing a nicer
+ * heading. Enforced in `toggleFocus` and respected by the weekly review.
+ */
+export const FOCUS_CAP = 3;
+
+/**
  * Progress toward a goal. A goal with a numeric target reports against it;
  * otherwise progress is the share of its tasks that are done.
  */

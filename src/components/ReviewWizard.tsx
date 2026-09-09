@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { finishReview } from "@/app/actions";
 import { fmtDate } from "@/lib/dates";
-import { drift, goalProgress } from "@/lib/model";
+import { FOCUS_CAP, drift, goalProgress } from "@/lib/model";
 import type { Goal, JournalEntry, Task } from "@/lib/types";
 
 const STEPS = ["Harvest", "Position", "Rules", "Set course"];
@@ -18,12 +18,15 @@ export function ReviewWizard({
   tasks,
   completed,
   frictions,
+  focusLeft,
 }: {
   weekOf: string;
   goals: Goal[];
   tasks: Task[];
   completed: Task[];
   frictions: JournalEntry[];
+  /** Focus slots still free, so step 4 can say what it will actually star. */
+  focusLeft: number;
 }) {
   const [step, setStep] = useState(0);
   const last = STEPS.length - 1;
@@ -146,6 +149,11 @@ export function ReviewWizard({
               One concrete task per goal for the coming week. Leave a box empty to
               skip that goal — deliberately skipping is a valid call; forgetting is
               not.
+            </p>
+            <p style={{ maxWidth: "62ch", fontSize: 13, color: "var(--ink-3)" }}>
+              {focusLeft > 0
+                ? `The first ${focusLeft} of these take the free focus slots — ${FOCUS_CAP} at a time, top box down. The rest are created open but unstarred.`
+                : `Focus is already full at ${FOCUS_CAP}, so these are all created unstarred. Finish or unstar something on Today to hand a slot to next week.`}
             </p>
             {goals.map((g) => (
               <div className="field" key={g.id}>

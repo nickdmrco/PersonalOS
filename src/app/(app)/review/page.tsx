@@ -2,6 +2,7 @@ import { ReviewWizard } from "@/components/ReviewWizard";
 import { PageHeader } from "@/components/PageHeader";
 import { load } from "@/lib/data";
 import { ago, dkey, fmtDate, monday, parseKey, qkey } from "@/lib/dates";
+import { FOCUS_CAP } from "@/lib/model";
 
 export default async function ReviewPage() {
   const { goals, tasks, journal, reviews } = await load("goals", "tasks", "journal", "reviews");
@@ -17,6 +18,10 @@ export default async function ReviewPage() {
   );
   const last = reviews[0];
   const doneThisWeek = last?.week_of === weekOf;
+  const focusLeft = Math.max(
+    0,
+    FOCUS_CAP - tasks.filter((t) => t.status !== "done" && t.focus).length,
+  );
 
   return (
     <>
@@ -46,6 +51,7 @@ export default async function ReviewPage() {
         tasks={tasks}
         completed={completed}
         frictions={frictions}
+        focusLeft={focusLeft}
       />
 
       {reviews.length > 0 && (

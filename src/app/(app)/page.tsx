@@ -3,10 +3,11 @@ import { CoursePlot } from "@/components/CoursePlot";
 import { GoalCard } from "@/components/GoalCard";
 import { JournalEditor } from "@/components/JournalEditor";
 import { PageHeader } from "@/components/PageHeader";
+import { TaskForm } from "@/components/TaskForm";
 import { TaskRow } from "@/components/TaskRow";
 import { load } from "@/lib/data";
 import { DAY, daysBetween, dkey, qBounds, qkey } from "@/lib/dates";
-import { drift, ruleOfDay } from "@/lib/model";
+import { FOCUS_CAP, drift, ruleOfDay } from "@/lib/model";
 
 function sevenDaysAgoMs() {
   return Date.now() - 7 * DAY;
@@ -29,6 +30,9 @@ export default async function TodayPage() {
     .filter((t) => t.completed_at && new Date(t.completed_at).getTime() > doneSince)
     .sort((a, b) => String(b.completed_at).localeCompare(String(a.completed_at)));
 
+  const focusLeft = Math.max(0, FOCUS_CAP - focus.length);
+  const focusFull = focusLeft === 0;
+
   const drifting = quarterGoals.filter((g) => drift(g, tasks).state !== "ok");
   const rod = ruleOfDay(rules);
   const rodIndex = rod ? rules.findIndex((r) => r.id === rod.id) + 1 : 0;
@@ -49,24 +53,35 @@ export default async function TodayPage() {
           <section className="panel">
             <header>
               <h3>Focus — the three that matter</h3>
-              <span className="num">{focus.length}/3</span>
+              <span className="num">
+                {focus.length}/{FOCUS_CAP}
+              </span>
             </header>
             <div className="body flush">
               {focus.length ? (
                 <div className="tasks">
                   {focus.map((t) => (
-                    <TaskRow key={t.id} task={t} goals={goals} />
+                    <TaskRow key={t.id} task={t} goals={goals} focusFull={focusFull} />
                   ))}
                 </div>
               ) : (
                 <div className="empty">
                   <strong>Nothing starred yet.</strong>
-                  Star up to three open tasks. If everything is a priority, the
-                  list is just a backlog wearing a costume.
+                  Star up to {FOCUS_CAP} open tasks. If everything is a priority,
+                  the list is just a backlog wearing a costume.
                 </div>
               )}
             </div>
           </section>
+
+          <details className="panel">
+            <summary className="body" style={{ cursor: "pointer", color: "var(--accent)" }}>
+              Add a task
+            </summary>
+            <div className="body" style={{ borderTop: "1px solid var(--line)" }}>
+              <TaskForm goals={quarterGoals} focusLeft={focusLeft} />
+            </div>
+          </details>
 
           {due.length > 0 && (
             <section className="panel">
@@ -76,7 +91,7 @@ export default async function TodayPage() {
               <div className="body flush">
                 <div className="tasks">
                   {due.map((t) => (
-                    <TaskRow key={t.id} task={t} goals={goals} />
+                    <TaskRow key={t.id} task={t} goals={goals} focusFull={focusFull} />
                   ))}
                 </div>
               </div>
@@ -179,7 +194,7 @@ export default async function TodayPage() {
               <div className="body flush">
                 <div className="tasks">
                   {rest.slice(0, 8).map((t) => (
-                    <TaskRow key={t.id} task={t} goals={goals} />
+                    <TaskRow key={t.id} task={t} goals={goals} focusFull={focusFull} />
                   ))}
                 </div>
                 {rest.length > 8 && (

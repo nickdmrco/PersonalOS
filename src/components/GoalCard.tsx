@@ -68,8 +68,15 @@ export function GoalCard({
               <input
                 name="title"
                 type="text"
+                required
                 placeholder="The next physical action"
                 style={{ flex: 1, minWidth: 200 }}
+              />
+              <input
+                name="due"
+                type="date"
+                aria-label="Due date, optional"
+                style={{ width: "auto" }}
               />
               <button className="btn sm pri" type="submit">
                 Add

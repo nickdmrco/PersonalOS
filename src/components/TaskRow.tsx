@@ -1,8 +1,18 @@
 import { deleteTask, toggleFocus, toggleTask } from "@/app/actions";
 import { ago, dkey, fmtDate } from "@/lib/dates";
+import { FOCUS_CAP } from "@/lib/model";
 import type { Goal, Task } from "@/lib/types";
 
-export function TaskRow({ task, goals }: { task: Task; goals: Goal[] }) {
+export function TaskRow({
+  task,
+  goals,
+  focusFull = false,
+}: {
+  task: Task;
+  goals: Goal[];
+  /** All focus slots are taken, so this task can be unstarred but not starred. */
+  focusFull?: boolean;
+}) {
   const done = task.status === "done";
   const goal = task.goal_id ? goals.find((g) => g.id === task.goal_id) : null;
   const overdue = !done && task.due !== null && task.due < dkey();
@@ -55,8 +65,13 @@ export function TaskRow({ task, goals }: { task: Task; goals: Goal[] }) {
           <button
             type="submit"
             className={`star${task.focus ? " on" : ""}`}
+            disabled={!task.focus && focusFull}
             aria-label={task.focus ? "Remove from focus" : "Add to focus"}
-            title="Focus"
+            title={
+              !task.focus && focusFull
+                ? `Focus is full at ${FOCUS_CAP} — unstar something first`
+                : "Focus"
+            }
           >
             ★
           </button>

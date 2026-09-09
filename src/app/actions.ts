@@ -4,6 +4,24 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { dkey, fmtDate, monday, qkey } from "@/lib/dates";
+import { FOCUS_CAP } from "@/lib/model";
+
+type DB = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Open tasks currently holding a focus slot. Completing a task clears its
+ * star, so only open ones can hold one. Counted server-side on every write:
+ * the UI hides the star at the cap, but a page left open overnight doesn't
+ * know that yet.
+ */
+async function focusHeld(supabase: DB) {
+  const { count } = await supabase
+    .from("tasks")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "open")
+    .eq("focus", true);
+  return count ?? 0;
+}
 
 async function requireUser() {
   const supabase = await createClient();
@@ -36,12 +54,17 @@ export async function addTask(formData: FormData) {
   const title = str(formData, "title");
   if (!title) return;
   const { supabase, user } = await requireUser();
+
+  // Starring on creation is still starring, so it takes the same slot check.
+  const starred =
+    formData.get("focus") === "true" && (await focusHeld(supabase)) < FOCUS_CAP;
+
   const { error } = await supabase.from("tasks").insert({
     title,
     user_id: user.id,
     goal_id: str(formData, "goal_id") || null,
     due: str(formData, "due") || null,
-    focus: formData.get("focus") === "true",
+    focus: starred,
   });
   fail("Could not add task", error);
   refresh();
@@ -70,6 +93,16 @@ export async function toggleFocus(formData: FormData) {
   const on = str(formData, "focus") === "true";
   if (!id) return;
   const { supabase } = await requireUser();
+
+  // Unstarring is always allowed; starring is not. The star renders disabled
+  // once the cap is reached, so getting here means the page was stale — send
+  // back a fresh render rather than raising, and the n/3 in the panel header
+  // does the explaining.
+  if (!on && (await focusHeld(supabase)) >= FOCUS_CAP) {
+    refresh();
+    return;
+  }
+
   const { error } = await supabase.from("tasks").update({ focus: !on }).eq("id", id);
   fail("Could not update task", error);
   refresh();
@@ -316,7 +349,11 @@ export async function finishReview(formData: FormData) {
     fail("Could not update goal progress", error);
   }
 
-  // Next week's tasks, starred so they land in Focus.
+  // Next week's tasks. The review is the scheduler, so its tasks get first
+  // claim on Focus — but only on the slots that are actually free. Starring
+  // all of them would put six starred tasks on a board that says three, which
+  // is the review breaking the rule the rest of the app enforces.
+  let free = Math.max(0, FOCUS_CAP - (await focusHeld(supabase)));
   const nextTasks: { title: string; goal_id: string | null; user_id: string; focus: boolean }[] = [];
   for (const [key, value] of formData.entries()) {
     if (!key.startsWith("nexttask:")) continue;
@@ -327,8 +364,9 @@ export async function finishReview(formData: FormData) {
       title,
       goal_id: goalId === "none" ? null : goalId,
       user_id: user.id,
-      focus: true,
+      focus: free > 0,
     });
+    if (free > 0) free--;
   }
   if (nextTasks.length) {
     const { error } = await supabase.from("tasks").insert(nextTasks);
