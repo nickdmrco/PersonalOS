@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --ground: #eff2ee;
+  --surface: #fafcf9;
+  --surface-2: #e7ebe5;
+  --surface-3: #dde3dc;
+  --ink: #141e1b;
+  --ink-2: #3f504a;
+  --ink-3: #6f827b;
+  --line: #d3dad3;
+  --line-2: #b7c2ba;
+  --accent: #a62e68;
+  --accent-2: #8a2456;
+  --accent-soft: #f4e3ec;
+  --ok: #2e7355;
+  --warn: #8f620e;
+  --bad: #a33128;
+  --on-accent: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #0c1412;
+    --surface: #131d1a;
+    --surface-2: #1a2622;
+    --surface-3: #22302b;
+    --ink: #e6ece8;
+    --ink-2: #b1c1bb;
+    --ink-3: #7f928c;
+    --line: #26332f;
+    --line-2: #394a45;
+    --accent: #e97bae;
+    --accent-2: #f3a0c6;
+    --accent-soft: #3a1e2c;
+    --ok: #65c79a;
+    --warn: #d9a84a;
+    --bad: #e5867a;
+    --on-accent: #1a0c14;
+  }
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-plex-sans), system-ui, sans-serif;
+}
+
+.font-display { font-family: var(--font-spectral), Georgia, serif; }
+.font-mono-ui { font-family: var(--font-plex-mono), ui-monospace, monospace; }
+
+.label {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
