@@ -200,13 +200,17 @@ export async function saveGoal(formData: FormData) {
   if (!title) return;
   const { supabase, user } = await requireUser();
 
+  // progress_updated_at is deliberately absent: it is the drift clock, and
+  // rewording a goal is not evidence the goal moved. Touching it here meant
+  // you could clear "Off course" by retyping the title — dodging the one
+  // piece of unsolicited feedback the system gives. Only logGoalProgress and
+  // a completed task count as movement; on insert the column defaults to now().
   const body = {
     title,
     done_when: str(formData, "done_when"),
     target: num(formData, "target"),
     unit: str(formData, "unit"),
     dream_id: str(formData, "dream_id") || null,
-    progress_updated_at: new Date().toISOString(),
   };
 
   const { error } = id

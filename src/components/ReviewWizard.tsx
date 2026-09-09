@@ -19,6 +19,7 @@ export function ReviewWizard({
   completed,
   frictions,
   focusLeft,
+  notes,
 }: {
   weekOf: string;
   goals: Goal[];
@@ -27,6 +28,9 @@ export function ReviewWizard({
   frictions: JournalEntry[];
   /** Focus slots still free, so step 4 can say what it will actually star. */
   focusLeft: number;
+  /** This week's review notes if it has already been run, so re-running
+   *  amends them instead of silently replacing them with an empty box. */
+  notes: string;
 }) {
   const [step, setStep] = useState(0);
   const last = STEPS.length - 1;
@@ -67,7 +71,12 @@ export function ReviewWizard({
                 What actually happened this week
               </label>
               <div className="hint">Not what you planned. What happened.</div>
-              <textarea id="r-notes" name="notes" style={{ minHeight: 150 }} />
+              <textarea
+                id="r-notes"
+                name="notes"
+                defaultValue={notes}
+                style={{ minHeight: 150 }}
+              />
             </div>
           </div>
 

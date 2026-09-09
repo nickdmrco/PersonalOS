@@ -2,19 +2,13 @@ import { promoteFriction } from "@/app/actions";
 import { JournalEditor } from "@/components/JournalEditor";
 import { PageHeader } from "@/components/PageHeader";
 import { load } from "@/lib/data";
-import { DAY, dkey, fmtDate } from "@/lib/dates";
+import { fmtDate } from "@/lib/dates";
+import { isWritten, journalStreak } from "@/lib/model";
 
 export default async function LogPage() {
   const { journal } = await load("journal");
-  const written = journal.filter((e) => e.entry || e.wins || e.friction);
-
-  // Longest run of consecutive days ending today or yesterday.
-  let streak = 0;
-  const keys = new Set(written.map((e) => e.entry_date));
-  for (let d = new Date(); ; d = new Date(d.getTime() - DAY)) {
-    if (keys.has(dkey(d))) streak++;
-    else break;
-  }
+  const written = journal.filter(isWritten);
+  const streak = journalStreak(journal);
 
   return (
     <>

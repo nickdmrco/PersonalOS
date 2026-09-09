@@ -39,8 +39,11 @@ export default async function ReviewPage() {
       {doneThisWeek && (
         <div className="panel" style={{ marginBottom: 16 }}>
           <div className="body">
-            <b>Already done for this week.</b> Reviewed {ago(last.created_at)}. You
-            can run it again — it will log a second entry for the same week.
+            <b>Already done for this week.</b> Reviewed {ago(last.created_at)}.
+            Running it again <b>amends</b> that entry rather than adding a second
+            one — your notes are loaded below as you left them. Tasks you type in
+            step 4 are created fresh every time, so leave those boxes empty for
+            anything already on the board.
           </div>
         </div>
       )}
@@ -52,6 +55,7 @@ export default async function ReviewPage() {
         completed={completed}
         frictions={frictions}
         focusLeft={focusLeft}
+        notes={doneThisWeek ? last.notes : ""}
       />
 
       {reviews.length > 0 && (
