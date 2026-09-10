@@ -172,6 +172,14 @@ textarea { min-height: 76px; line-height: 1.6; resize: vertical; }
 .rule .n { font-family: var(--font-plex-mono), monospace; font-size: 11px; color: var(--accent); flex: none; padding-top: 2px; font-variant-numeric: tabular-nums; }
 .rule .rt { font-family: var(--font-spectral), Georgia, serif; font-size: 16px; line-height: 1.45; max-width: 60ch; }
 .rule .or { font-family: var(--font-plex-mono), monospace; font-size: 10px; color: var(--ink-3); margin-top: 5px; line-height: 1.5; }
+/* A <summary> styled as a button: the default disclosure triangle would give
+   it away as a different kind of control from Retire beside it. */
+summary.btn { list-style: none; display: inline-flex; align-items: center; }
+summary.btn::-webkit-details-marker { display: none; }
+.rule-acts { display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; margin-top: 8px; }
+/* Closed, Edit sits beside Retire. Open, it claims the full row so the form
+   lays out beneath rather than squeezing into the flex track. */
+.rule-acts > details[open] { flex: 1 0 100%; }
 .dream { padding: 16px; border-bottom: 1px solid var(--line); }
 .dream:last-child { border-bottom: 0; }
 .dream h4 { font-family: var(--font-spectral), Georgia, serif; font-size: 19px; margin: 0 0 6px; font-weight: 600; letter-spacing: -0.01em; }

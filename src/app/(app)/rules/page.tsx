@@ -100,41 +100,39 @@ export default async function RulesPage({
                   <div className="rt">{r.text}</div>
                   {r.origin && <div className="or">{r.origin}</div>}
 
-                  <div className="rowline" style={{ marginTop: 8 }}>
+                  <div className="rule-acts">
                     <form action={retireRule}>
                       <input type="hidden" name="id" value={r.id} />
                       <SubmitButton className="btn sm gh" pendingLabel="Retiring…">Retire</SubmitButton>
                     </form>
-                  </div>
 
-                  <details style={{ marginTop: 6 }}>
-                    <summary className="num" style={{ cursor: "pointer", color: "var(--accent)" }}>
-                      Edit
-                    </summary>
-                    <form action={saveRule} style={{ marginTop: 9 }}>
-                      <input type="hidden" name="id" value={r.id} />
-                      <div className="field">
-                        <label className="label" htmlFor={`rt-${r.id}`}>The rule</label>
-                        <textarea
-                          id={`rt-${r.id}`}
-                          name="text"
-                          required
-                          defaultValue={r.text}
-                          style={{ minHeight: 58 }}
-                        />
-                      </div>
-                      <div className="field">
-                        <label className="label" htmlFor={`ro-${r.id}`}>Where it came from</label>
-                        <input
-                          id={`ro-${r.id}`}
-                          name="origin"
-                          type="text"
-                          defaultValue={r.origin}
-                        />
-                      </div>
-                      <SubmitButton className="btn sm pri" pendingLabel="Saving…">Save changes</SubmitButton>
-                    </form>
-                  </details>
+                    <details>
+                      <summary className="btn sm gh">Edit</summary>
+                      <form action={saveRule} style={{ marginTop: 9 }}>
+                        <input type="hidden" name="id" value={r.id} />
+                        <div className="field">
+                          <label className="label" htmlFor={`rt-${r.id}`}>The rule</label>
+                          <textarea
+                            id={`rt-${r.id}`}
+                            name="text"
+                            required
+                            defaultValue={r.text}
+                            style={{ minHeight: 58 }}
+                          />
+                        </div>
+                        <div className="field">
+                          <label className="label" htmlFor={`ro-${r.id}`}>Where it came from</label>
+                          <input
+                            id={`ro-${r.id}`}
+                            name="origin"
+                            type="text"
+                            defaultValue={r.origin}
+                          />
+                        </div>
+                        <SubmitButton className="btn sm pri" pendingLabel="Saving…">Save changes</SubmitButton>
+                      </form>
+                    </details>
+                  </div>
                 </div>
               </div>
             ))
