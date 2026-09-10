@@ -110,9 +110,8 @@ export function JournalEditor({ entries }: { entries: JournalEntry[] }) {
         {frictionOnRecord.trim() !== "" && (
           <form action={promoteFriction}>
             <input type="hidden" name="date" value={date} />
-            <input type="hidden" name="friction" value={frictionOnRecord} />
-            <SubmitButton className="btn sm" pendingLabel="Promoting…">
-              Promote this friction to a standing rule
+            <SubmitButton className="btn sm" pendingLabel="Opening…">
+              Draft a standing rule from this friction
             </SubmitButton>
           </form>
         )}

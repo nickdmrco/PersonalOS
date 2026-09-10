@@ -298,13 +298,23 @@ export async function saveRule(formData: FormData) {
 }
 
 /** Rules are retired, not deleted — the record of what you once decided
- *  is worth more than a tidy table. */
+ *  is worth more than a tidy table. The Rules page lists them, so a retired
+ *  rule stays readable and can be brought back. */
 export async function retireRule(formData: FormData) {
   const id = str(formData, "id");
   if (!id) return;
   const { supabase } = await requireUser();
   const { error } = await supabase.from("rules").update({ active: false }).eq("id", id);
   fail("Could not retire rule", error);
+  refresh();
+}
+
+export async function restoreRule(formData: FormData) {
+  const id = str(formData, "id");
+  if (!id) return;
+  const { supabase } = await requireUser();
+  const { error } = await supabase.from("rules").update({ active: true }).eq("id", id);
+  fail("Could not restore rule", error);
   refresh();
 }
 
@@ -328,20 +338,22 @@ export async function saveJournal(formData: FormData) {
   refresh();
 }
 
-/** The pipeline that makes rules earned rather than declared. */
+/**
+ * The pipeline that makes rules earned rather than declared. It hands you a
+ * draft rather than filing one: friction is a complaint ("the build took
+ * twenty minutes again") and a rule is an instruction ("build before standup,
+ * not during it"). Writing the second from the first is the actual work, and
+ * inserting the complaint verbatim skipped it.
+ *
+ * Only the date travels. The Rules page reads the entry itself, so nothing
+ * long rides in a URL and the evidence shown beside the draft is the stored
+ * one rather than a copy.
+ */
 export async function promoteFriction(formData: FormData) {
   const date = str(formData, "date");
-  const friction = str(formData, "friction");
-  if (!friction) return;
-  const { supabase, userId } = await requireUser();
-  const excerpt = friction.length > 140 ? `${friction.slice(0, 140)}…` : friction;
-  const { error } = await supabase.from("rules").insert({
-    text: friction,
-    origin: `From friction logged ${fmtDate(date)} · "${excerpt}"`,
-    user_id: userId,
-  });
-  fail("Could not promote friction", error);
-  redirect("/rules");
+  if (!date) return;
+  await requireUser();
+  redirect(`/rules?from=${encodeURIComponent(date)}`);
 }
 
 /* ----------------------------------------------------------------- review */

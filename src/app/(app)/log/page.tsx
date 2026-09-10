@@ -56,9 +56,8 @@ export default async function LogPage() {
                     </p>
                     <form action={promoteFriction}>
                       <input type="hidden" name="date" value={e.entry_date} />
-                      <input type="hidden" name="friction" value={e.friction} />
-                      <SubmitButton className="btn sm gh" pendingLabel="Promoting…">
-                        Promote to rule
+                      <SubmitButton className="btn sm gh" pendingLabel="Opening…">
+                        Draft a rule from this
                       </SubmitButton>
                     </form>
                   </>

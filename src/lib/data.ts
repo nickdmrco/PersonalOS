@@ -16,6 +16,7 @@ export type AppData = {
   inbox: InboxItem[];
   journal: JournalEntry[];
   rules: Rule[];
+  retired: Rule[];
   reviews: Review[];
 };
 
@@ -37,6 +38,10 @@ const QUERIES: Record<Table, (sb: DB) => PromiseLike<{ data: unknown }>> = {
       .order("entry_date", { ascending: false }),
   rules: (sb) =>
     sb.from("rules").select("*").eq("active", true).order("created_at"),
+  // Kept separate from `rules` so the rule of the day and its numbering keep
+  // counting only what is in force.
+  retired: (sb) =>
+    sb.from("rules").select("*").eq("active", false).order("created_at"),
   reviews: (sb) =>
     sb.from("reviews").select("*").order("week_of", { ascending: false }),
 };
