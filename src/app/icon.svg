@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Dead Reckoning">
+  <title>Dead Reckoning</title>
+  <rect width="32" height="32" rx="7" fill="#141e1b"/>
+  <polygon points="26,6 19.8,19.8 12.2,12.2" fill="#e97bae"/>
+  <polygon points="6,26 19.8,19.8 12.2,12.2" fill="#b1c1bb"/>
+</svg>
