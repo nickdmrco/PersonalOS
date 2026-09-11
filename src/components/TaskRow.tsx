@@ -1,7 +1,7 @@
 "use client";
 
 import { useOptimistic } from "react";
-import { deleteTask, toggleFocus, toggleTask } from "@/app/actions";
+import { deleteTask, saveTask, toggleFocus, toggleTask } from "@/app/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { ago, dkey, fmtDate } from "@/lib/dates";
 import { FOCUS_CAP } from "@/lib/model";
@@ -105,6 +105,35 @@ export function TaskRow({
           Delete
         </SubmitButton>
       </form>
+
+      <details className="task-edit">
+        <summary className="btn sm gh" aria-label={`Edit ${task.title}`}>
+          Edit
+        </summary>
+        <form action={saveTask}>
+          <input type="hidden" name="id" value={task.id} />
+          <div className="field">
+            <label className="label" htmlFor={`tt-${task.id}`}>Task</label>
+            <input id={`tt-${task.id}`} name="title" type="text" required defaultValue={task.title} />
+          </div>
+          <div className="split">
+            <div className="field">
+              <label className="label" htmlFor={`td-${task.id}`}>Due</label>
+              <input id={`td-${task.id}`} name="due" type="date" defaultValue={task.due ?? ""} />
+            </div>
+            <div className="field">
+              <label className="label" htmlFor={`tg-${task.id}`}>Toward a goal</label>
+              <select id={`tg-${task.id}`} name="goal_id" defaultValue={task.goal_id ?? ""}>
+                <option value="">Nothing in particular</option>
+                {goals.map((g) => (
+                  <option key={g.id} value={g.id}>{g.title}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <SubmitButton className="btn sm pri" pendingLabel="Saving…">Save changes</SubmitButton>
+        </form>
+      </details>
     </div>
   );
 }

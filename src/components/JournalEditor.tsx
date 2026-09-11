@@ -12,17 +12,27 @@ const BLANK: Fields = { entry: "", wins: "", friction: "" };
 /**
  * "Today" has to be the viewer's local day, not the server's UTC day, or an
  * evening entry lands on tomorrow. So the date is resolved on the client
- * after mount, which also avoids a hydration mismatch.
+ * after mount, which also avoids a hydration mismatch. A `forDate` skips all
+ * of that: the day is already known, so the editor renders on the server.
  */
 const subscribe = () => () => {};
 
-export function JournalEditor({ entries }: { entries: JournalEntry[] }) {
+export function JournalEditor({
+  entries,
+  forDate,
+}: {
+  entries: JournalEntry[];
+  /** Write up a specific day instead of today. Missing an evening used to
+   *  mean losing it: there was no way to reach any date but the current one. */
+  forDate?: string;
+}) {
   // null while server-rendering and hydrating, the local day thereafter.
-  const date = useSyncExternalStore(
+  const today = useSyncExternalStore(
     subscribe,
     () => dkey(),
     () => null,
   );
+  const date = forDate ?? today;
   const [edits, setEdits] = useState<Fields | null>(null);
   const [savedFriction, setSavedFriction] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");

@@ -117,6 +117,29 @@ export async function toggleFocus(formData: FormData) {
   refresh();
 }
 
+/**
+ * Title, due date and goal, after the fact. Without this the only way to fix
+ * a typo was to delete and retype — and on a task already done, that erased
+ * the completion along with it, taking the course plot and the goal's
+ * progress with it.
+ */
+export async function saveTask(formData: FormData) {
+  const id = str(formData, "id");
+  const title = str(formData, "title");
+  if (!id || !title) return;
+  const { supabase } = await requireUser();
+  const { error } = await supabase
+    .from("tasks")
+    .update({
+      title,
+      due: str(formData, "due") || null,
+      goal_id: str(formData, "goal_id") || null,
+    })
+    .eq("id", id);
+  fail("Could not save task", error);
+  refresh();
+}
+
 export async function deleteTask(formData: FormData) {
   const id = str(formData, "id");
   if (!id) return;

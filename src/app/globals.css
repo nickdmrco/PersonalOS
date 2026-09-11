@@ -121,7 +121,7 @@ textarea { min-height: 76px; line-height: 1.6; resize: vertical; }
 
 /* ============================ tasks ============================ */
 .tasks { display: flex; flex-direction: column; }
-.task { display: flex; align-items: flex-start; gap: 10px; padding: 9px 16px; border-bottom: 1px solid var(--line); }
+.task { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 10px; padding: 9px 16px; border-bottom: 1px solid var(--line); }
 .task:last-child { border-bottom: 0; }
 .task .box { width: 15px; height: 15px; border: 1.5px solid var(--line-2); border-radius: 4px; background: transparent; cursor: pointer; flex: none; margin-top: 3px; padding: 0; display: grid; place-items: center; }
 .task .box:hover { border-color: var(--accent); }
@@ -134,6 +134,10 @@ textarea { min-height: 76px; line-height: 1.6; resize: vertical; }
 .star { background: none; border: 0; cursor: pointer; color: var(--line-2); padding: 2px 4px; line-height: 1; }
 .star.on { color: var(--accent); }
 .star:disabled { cursor: not-allowed; opacity: 0.3; }
+/* The row is a flex line; an open editor has to claim the whole width of it
+   rather than squeeze in beside the title. */
+.task-edit[open] { flex: 1 0 100%; order: 9; margin-top: 9px; }
+.task-edit > form { margin-top: 9px; }
 
 /* ============================ loading ============================ */
 .skel { background: var(--surface-2); border-radius: 4px; animation: skel 1.25s ease-in-out infinite; }
