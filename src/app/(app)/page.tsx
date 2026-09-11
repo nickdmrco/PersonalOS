@@ -14,7 +14,7 @@ function sevenDaysAgoMs() {
 }
 
 export default async function TodayPage() {
-  const { goals, tasks, journal, rules } = await load("goals", "tasks", "journal", "rules");
+  const { goals, tasks, journalRecent, rules } = await load("goals", "tasks", "journalRecent", "rules");
   const now = new Date();
   const today = dkey(now);
   const [qs, qe] = qBounds(now);
@@ -106,7 +106,7 @@ export default async function TodayPage() {
               </Link>
             </header>
             <div className="body">
-              <JournalEditor entries={journal} />
+              <JournalEditor entries={journalRecent} />
             </div>
           </section>
         </div>

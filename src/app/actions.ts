@@ -188,23 +188,19 @@ export async function inboxToTask(formData: FormData) {
   refresh();
 }
 
+/**
+ * Same reasoning as promoteFriction: a captured thought is rarely already an
+ * instruction, and filing it verbatim as a standing rule skips the work. The
+ * item is dropped and its text carried to the rule form as a draft.
+ */
 export async function inboxToRule(formData: FormData) {
   const id = str(formData, "id");
   const text = str(formData, "text");
   if (!id || !text) return;
-  const { supabase, userId } = await requireUser();
-  const { error } = await supabase.from("rules").insert({
-    text,
-    origin: `From inbox · ${fmtDate(dkey())}`,
-    user_id: userId,
-  });
-  fail("Could not create rule", error);
-  const { error: dropped } = await supabase
-    .from("inbox_items")
-    .delete()
-    .eq("id", id);
-  fail("Rule created, but the inbox item was left behind", dropped);
-  refresh();
+  const { supabase } = await requireUser();
+  const { error } = await supabase.from("inbox_items").delete().eq("id", id);
+  fail("Could not drop the inbox item", error);
+  redirect(`/rules?draft=${encodeURIComponent(text)}`);
 }
 
 export async function inboxToGoal(formData: FormData) {
@@ -265,6 +261,72 @@ export async function logGoalProgress(formData: FormData) {
     .update({ current, progress_updated_at: new Date().toISOString() })
     .eq("id", id);
   fail("Could not log progress", error);
+  refresh();
+}
+
+/**
+ * The quarterly layer had no way to end. A goal whose quarter passed simply
+ * dropped out of "This quarter" into a read-only list, so "Off course" had no
+ * terminal state and the archived column — on the table since the first
+ * migration — was never written by anything.
+ *
+ * Archiving is the full stop; carrying forward is the other answer. Deleting
+ * stays available but is a different act: it destroys the record, and orphans
+ * the tasks that were done for it.
+ */
+export async function archiveGoal(formData: FormData) {
+  const id = str(formData, "id");
+  if (!id) return;
+  const { supabase } = await requireUser();
+  const { error } = await supabase.from("goals").update({ archived: true }).eq("id", id);
+  fail("Could not archive goal", error);
+  refresh();
+}
+
+export async function unarchiveGoal(formData: FormData) {
+  const id = str(formData, "id");
+  if (!id) return;
+  const { supabase } = await requireUser();
+  const { error } = await supabase.from("goals").update({ archived: false }).eq("id", id);
+  fail("Could not restore goal", error);
+  refresh();
+}
+
+/**
+ * Same goal, new quarter, fresh start: progress resets to zero because a
+ * quarter's target is a quarter's target, and the drift clock restarts from
+ * the insert. The old one is archived rather than left to sit unresolved.
+ */
+export async function carryForwardGoal(formData: FormData) {
+  const id = str(formData, "id");
+  if (!id) return;
+  const { supabase, userId } = await requireUser();
+
+  const { data: goal, error: read } = await supabase
+    .from("goals")
+    .select("title, done_when, target, unit, dream_id")
+    .eq("id", id)
+    .single();
+  fail("Could not read the goal", read);
+  if (!goal) return;
+
+  const { error } = await supabase.from("goals").insert({
+    title: goal.title,
+    done_when: goal.done_when,
+    target: goal.target,
+    unit: goal.unit,
+    dream_id: goal.dream_id,
+    current: 0,
+    quarter: qkey(),
+    user_id: userId,
+  });
+  fail("Could not carry the goal forward", error);
+
+  const { error: archived } = await supabase
+    .from("goals")
+    .update({ archived: true })
+    .eq("id", id);
+  fail("Carried forward, but the old goal was left open", archived);
   refresh();
 }
 
@@ -427,8 +489,20 @@ export async function finishReview(formData: FormData) {
     if (free > 0) free--;
   }
   if (nextTasks.length) {
-    const { error } = await supabase.from("tasks").insert(nextTasks);
-    fail("Could not create next week's tasks", error);
+    // Re-running the review amends its entry, but these were plain inserts, so
+    // retyping a box duplicated the task. Anything still open with the same
+    // title is treated as already scheduled.
+    const { data: open } = await supabase
+      .from("tasks")
+      .select("title")
+      .eq("status", "open");
+    const already = new Set((open ?? []).map((t) => t.title.trim().toLowerCase()));
+    const fresh = nextTasks.filter((t) => !already.has(t.title.trim().toLowerCase()));
+
+    if (fresh.length) {
+      const { error } = await supabase.from("tasks").insert(fresh);
+      fail("Could not create next week's tasks", error);
+    }
   }
 
   // A rule written during the review, if any.

@@ -15,6 +15,7 @@ export type AppData = {
   tasks: Task[];
   inbox: InboxItem[];
   journal: JournalEntry[];
+  journalRecent: JournalEntry[];
   rules: Rule[];
   retired: Rule[];
   reviews: Review[];
@@ -36,6 +37,16 @@ const QUERIES: Record<Table, (sb: DB) => PromiseLike<{ data: unknown }>> = {
       .from("journal_entries")
       .select("*")
       .order("entry_date", { ascending: false }),
+  // Today renders one entry but could not say which: the editor resolves the
+  // viewer's local day on the client, so the server cannot filter to it. A
+  // handful of the newest covers every timezone's idea of "today" and stops
+  // the page re-fetching the whole journal on every mutation.
+  journalRecent: (sb) =>
+    sb
+      .from("journal_entries")
+      .select("*")
+      .order("entry_date", { ascending: false })
+      .limit(5),
   rules: (sb) =>
     sb.from("rules").select("*").eq("active", true).order("created_at"),
   // Kept separate from `rules` so the rule of the day and its numbering keep

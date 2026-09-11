@@ -2,7 +2,7 @@ import { restoreRule, retireRule, saveRule } from "@/app/actions";
 import { PageHeader } from "@/components/PageHeader";
 import { SubmitButton } from "@/components/SubmitButton";
 import { load } from "@/lib/data";
-import { fmtDate } from "@/lib/dates";
+import { dkey, fmtDate } from "@/lib/dates";
 
 /** Enough of the friction to recognise it, in the line that records where the
  *  rule came from. Now that the rule itself is rewritten, this is evidence
@@ -14,9 +14,9 @@ function excerpt(text: string) {
 export default async function RulesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: string; draft?: string }>;
 }) {
-  const { from } = await searchParams;
+  const { from, draft: inboxText } = await searchParams;
   const { rules, retired, journal } = await load("rules", "retired", "journal");
 
   // Arriving from "Promote to rule": the friction is loaded from the entry
@@ -27,7 +27,10 @@ export default async function RulesPage({
         text: source.friction,
         origin: `From friction logged ${fmtDate(source.entry_date)} · "${excerpt(source.friction)}"`,
       }
-    : null;
+    : inboxText
+      ? // Arriving from the inbox, where the text is short enough to travel.
+        { text: inboxText, origin: `From inbox · ${fmtDate(dkey())}` }
+      : null;
 
   return (
     <>
