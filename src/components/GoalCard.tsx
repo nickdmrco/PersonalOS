@@ -2,20 +2,30 @@ import Link from "next/link";
 import { addTask, deleteGoal, logGoalProgress } from "@/app/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { ago } from "@/lib/dates";
+import { TaskRow } from "@/components/TaskRow";
 import { drift, goalProgress, lastMovement } from "@/lib/model";
 import type { Goal, Task } from "@/lib/types";
 
 export function GoalCard({
   goal,
   tasks,
+  goals = [],
   compact = false,
 }: {
   goal: Goal;
   tasks: Task[];
+  /** Every goal, so a task's own editor can offer them. Only needed when the
+   *  card lists tasks, which `compact` does not. */
+  goals?: Goal[];
   compact?: boolean;
 }) {
   const p = goalProgress(goal, tasks);
   const d = drift(goal, tasks);
+  // The card already let you add a task to this goal and then never showed it
+  // to you. Listing them is opt-in so a page of goals stays scannable, but the
+  // count is always visible — a goal with nothing open is the one about to
+  // start drifting, and that is worth seeing without a click.
+  const open = tasks.filter((t) => t.goal_id === goal.id && t.status !== "done");
   const numeric = typeof goal.target === "number" && goal.target > 0;
 
   return (
@@ -50,7 +60,7 @@ export function GoalCard({
               Last movement {ago(new Date(lastMovement(goal, tasks)).toISOString())}
             </span>
             <Link className="btn sm" href={`/goals/${goal.id}`}>
-              Edit
+              Open
             </Link>
             <form action={deleteGoal}>
               <input type="hidden" name="id" value={goal.id} />
@@ -59,6 +69,26 @@ export function GoalCard({
               </SubmitButton>
             </form>
           </div>
+
+          <details>
+            <summary className="num" style={{ cursor: "pointer", color: "var(--accent)" }}>
+              Open tasks ({open.length})
+            </summary>
+            <div style={{ marginTop: 8 }}>
+              {open.length ? (
+                <div className="tasks">
+                  {open.map((t) => (
+                    <TaskRow key={t.id} task={t} goals={goals} hideGoal />
+                  ))}
+                </div>
+              ) : (
+                <div className="num" style={{ color: "var(--ink-3)" }}>
+                  Nothing open against this goal
+                  {d.state === "ok" ? " — give it one at the next review." : " — which is why it is drifting."}
+                </div>
+              )}
+            </div>
+          </details>
 
           <details>
             <summary className="num" style={{ cursor: "pointer", color: "var(--accent)" }}>

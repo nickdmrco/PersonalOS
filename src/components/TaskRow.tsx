@@ -11,11 +11,14 @@ export function TaskRow({
   task,
   goals,
   focusFull = false,
+  hideGoal = false,
 }: {
   task: Task;
   goals: Goal[];
   /** All focus slots are taken, so this task can be unstarred but not starred. */
   focusFull?: boolean;
+  /** Listed under the goal it belongs to, where naming it again is noise. */
+  hideGoal?: boolean;
 }) {
   // The row mirrors the click immediately and reconciles when the server
   // answers. Every mutation here revalidates the layout, so the truth arrives
@@ -25,7 +28,8 @@ export function TaskRow({
   const [done, setDone] = useOptimistic(task.status === "done");
   const [focus, setFocus] = useOptimistic(task.focus);
 
-  const goal = task.goal_id ? goals.find((g) => g.id === task.goal_id) : null;
+  const goal =
+    hideGoal || !task.goal_id ? null : (goals.find((g) => g.id === task.goal_id) ?? null);
   const overdue = !done && task.due !== null && task.due < dkey();
   const hasSub = Boolean(goal || task.due || task.completed_at);
 

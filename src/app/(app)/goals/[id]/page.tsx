@@ -5,7 +5,7 @@ import { load } from "@/lib/data";
 import { ago } from "@/lib/dates";
 import { drift, goalProgress, lastMovement } from "@/lib/model";
 
-export default async function EditGoalPage({
+export default async function GoalPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -51,7 +51,7 @@ export default async function EditGoalPage({
           {open.length ? (
             <div className="tasks">
               {open.map((t) => (
-                <TaskRow key={t.id} task={t} goals={goals} />
+                <TaskRow key={t.id} task={t} goals={goals} hideGoal />
               ))}
             </div>
           ) : (
@@ -74,7 +74,7 @@ export default async function EditGoalPage({
           <div className="body flush">
             <div className="tasks">
               {done.slice(0, 12).map((t) => (
-                <TaskRow key={t.id} task={t} goals={goals} />
+                <TaskRow key={t.id} task={t} goals={goals} hideGoal />
               ))}
             </div>
           </div>

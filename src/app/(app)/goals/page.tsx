@@ -51,7 +51,7 @@ export default async function GoalsPage() {
               A goal without a written definition of done is a mood.
             </div>
           ) : (
-            active.map((g) => <GoalCard key={g.id} goal={g} tasks={tasks} />)
+            active.map((g) => <GoalCard key={g.id} goal={g} tasks={tasks} goals={goals} />)
           )}
         </div>
       </section>
