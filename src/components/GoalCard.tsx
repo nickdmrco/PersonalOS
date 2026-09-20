@@ -2,6 +2,7 @@ import Link from "next/link";
 import { addTask, deleteGoal, logGoalProgress } from "@/app/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { ago } from "@/lib/dates";
+import { FormDisclosure } from "@/components/FormDisclosure";
 import { TaskRow } from "@/components/TaskRow";
 import { drift, goalProgress, lastMovement } from "@/lib/model";
 import type { Goal, Task } from "@/lib/types";
@@ -90,11 +91,14 @@ export function GoalCard({
             </div>
           </details>
 
-          <details>
-            <summary className="num" style={{ cursor: "pointer", color: "var(--accent)" }}>
-              Add a task
-            </summary>
-            <form action={addTask} className="rowline" style={{ marginTop: 8 }}>
+          <FormDisclosure
+            label="Add a task"
+            summaryClassName="num"
+            summaryAriaLabel={`Add a task to ${goal.title}`}
+            action={addTask}
+            formClassName="rowline"
+            formStyle={{ marginTop: 8 }}
+          >
               <input type="hidden" name="goal_id" value={goal.id} />
               <input
                 name="title"
@@ -112,15 +116,17 @@ export function GoalCard({
               <SubmitButton className="btn sm pri" pendingLabel="Adding…">
                 Add
               </SubmitButton>
-            </form>
-          </details>
+          </FormDisclosure>
 
           {numeric && (
-            <details>
-              <summary className="num" style={{ cursor: "pointer", color: "var(--accent)" }}>
-                Log progress
-              </summary>
-              <form action={logGoalProgress} className="rowline" style={{ marginTop: 8 }}>
+            <FormDisclosure
+              label="Log progress"
+              summaryClassName="num"
+              summaryAriaLabel={`Log progress on ${goal.title}`}
+              action={logGoalProgress}
+              formClassName="rowline"
+              formStyle={{ marginTop: 8 }}
+            >
                 <input type="hidden" name="id" value={goal.id} />
                 <input
                   name="current"
@@ -136,8 +142,7 @@ export function GoalCard({
                 <SubmitButton className="btn sm pri" pendingLabel="Saving…">
                   Save
                 </SubmitButton>
-              </form>
-            </details>
+            </FormDisclosure>
           )}
         </>
       )}

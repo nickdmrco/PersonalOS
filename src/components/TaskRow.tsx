@@ -2,6 +2,7 @@
 
 import { useOptimistic } from "react";
 import { deleteTask, saveTask, toggleFocus, toggleTask } from "@/app/actions";
+import { FormDisclosure } from "@/components/FormDisclosure";
 import { SubmitButton } from "@/components/SubmitButton";
 import { ago, dkey, fmtDate } from "@/lib/dates";
 import { FOCUS_CAP } from "@/lib/model";
@@ -110,11 +111,12 @@ export function TaskRow({
         </SubmitButton>
       </form>
 
-      <details className="task-edit">
-        <summary className="btn sm gh" aria-label={`Edit ${task.title}`}>
-          Edit
-        </summary>
-        <form action={saveTask}>
+      <FormDisclosure
+        className="task-edit"
+        label="Edit"
+        summaryAriaLabel={`Edit ${task.title}`}
+        action={saveTask}
+      >
           <input type="hidden" name="id" value={task.id} />
           <div className="field">
             <label className="label" htmlFor={`tt-${task.id}`}>Task</label>
@@ -136,8 +138,7 @@ export function TaskRow({
             </div>
           </div>
           <SubmitButton className="btn sm pri" pendingLabel="Saving…">Save changes</SubmitButton>
-        </form>
-      </details>
+      </FormDisclosure>
     </div>
   );
 }

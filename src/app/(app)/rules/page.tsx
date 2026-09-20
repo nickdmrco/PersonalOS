@@ -1,4 +1,5 @@
 import { restoreRule, retireRule, saveRule } from "@/app/actions";
+import { FormDisclosure } from "@/components/FormDisclosure";
 import { PageHeader } from "@/components/PageHeader";
 import { SubmitButton } from "@/components/SubmitButton";
 import { load } from "@/lib/data";
@@ -109,9 +110,12 @@ export default async function RulesPage({
                       <SubmitButton className="btn sm gh" pendingLabel="Retiring…">Retire</SubmitButton>
                     </form>
 
-                    <details>
-                      <summary className="btn sm gh">Edit</summary>
-                      <form action={saveRule} style={{ marginTop: 9 }}>
+                    <FormDisclosure
+                      label="Edit"
+                      summaryAriaLabel={`Edit rule ${i + 1}`}
+                      action={saveRule}
+                      formStyle={{ marginTop: 9 }}
+                    >
                         <input type="hidden" name="id" value={r.id} />
                         <div className="field">
                           <label className="label" htmlFor={`rt-${r.id}`}>The rule</label>
@@ -133,8 +137,7 @@ export default async function RulesPage({
                           />
                         </div>
                         <SubmitButton className="btn sm pri" pendingLabel="Saving…">Save changes</SubmitButton>
-                      </form>
-                    </details>
+                    </FormDisclosure>
                   </div>
                 </div>
               </div>
