@@ -139,6 +139,22 @@ textarea { min-height: 76px; line-height: 1.6; resize: vertical; }
 .task-edit[open] { flex: 1 0 100%; order: 9; margin-top: 9px; }
 .task-edit > form { margin-top: 9px; }
 
+/* ==================== standing order ==================== */
+/* Read before the day, not filed beside it: full width, above the columns,
+   and typographic rather than boxed — a statement, not another module. */
+.standing { border-left: 2px solid var(--accent); padding: 2px 0 2px 16px; margin: 0 0 22px; }
+.standing > .label { margin-bottom: 7px; }
+.standing .so { display: flex; gap: 14px; align-items: baseline; }
+.standing .so .n { font-family: var(--font-plex-mono), monospace; font-size: 12px; color: var(--accent); flex: none; font-variant-numeric: tabular-nums; }
+.standing .so .rt { font-family: var(--font-spectral), Georgia, serif; font-size: 19px; line-height: 1.45; margin: 0; max-width: 62ch; letter-spacing: -0.005em; }
+.standing .so .or { font-family: var(--font-plex-mono), monospace; font-size: 10px; color: var(--ink-3); margin-top: 6px; line-height: 1.5; }
+@media (max-width: 620px) { .standing .so .rt { font-size: 17px; } }
+
+/* ==================== a free focus slot ==================== */
+.slot { display: flex; align-items: center; gap: 10px; padding: 11px 16px; font-size: 13px; color: var(--ink-3); }
+.slot .box { width: 15px; height: 15px; border: 1.5px dashed var(--line-2); border-radius: 4px; flex: none; }
+.slot a { color: var(--accent); }
+
 /* ============================ loading ============================ */
 .skel { background: var(--surface-2); border-radius: 4px; animation: skel 1.25s ease-in-out infinite; }
 @keyframes skel { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }

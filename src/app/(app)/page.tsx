@@ -48,6 +48,19 @@ export default async function TodayPage() {
         meta={`${qkey(now)} · day ${daysBetween(qs, now)} of ${daysBetween(qs, qe)} · ${elapsed}% elapsed`}
       />
 
+      {rod && (
+        <section className="standing">
+          <div className="label">Standing order for today</div>
+          <div className="so">
+            <span className="n">{String(rodIndex).padStart(2, "0")}</span>
+            <div>
+              <p className="rt">{rod.text}</p>
+              {rod.origin && <div className="or">{rod.origin}</div>}
+            </div>
+          </div>
+        </section>
+      )}
+
       <div className="grid g2">
         <div className="grid" style={{ alignContent: "start" }}>
           <section className="panel">
@@ -63,6 +76,25 @@ export default async function TodayPage() {
                   {focus.map((t) => (
                     <TaskRow key={t.id} task={t} goals={goals} focusFull={focusFull} />
                   ))}
+                  {/* The count in the header states the shortfall; an actual gap
+                      in a list of three asks about it. Only between one and two
+                      starred — nothing yet has its own empty state below, and a
+                      full board should say nothing at all. */}
+                  {focusLeft > 0 && (
+                    <div className="slot">
+                      <span className="box" aria-hidden="true" />
+                      <span>
+                        {focusLeft === 1
+                          ? "One slot free"
+                          : focusLeft === 2
+                            ? "Two slots free"
+                            : `${focusLeft} slots free`}{" "}
+                        —
+                        star something from below, or{" "}
+                        <a href="#add-task">add a task</a>.
+                      </span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="empty">
@@ -74,7 +106,7 @@ export default async function TodayPage() {
             </div>
           </section>
 
-          <details className="panel">
+          <details className="panel" id="add-task">
             <summary className="body" style={{ cursor: "pointer", color: "var(--accent)" }}>
               Add a task
             </summary>
@@ -153,28 +185,6 @@ export default async function TodayPage() {
               </div>
             </section>
           )}
-
-          <section className="panel">
-            <header>
-              <h3>Standing order for today</h3>
-            </header>
-            <div className="body">
-              {rod ? (
-                <div className="rule" style={{ padding: 0, border: 0 }}>
-                  <span className="n">{String(rodIndex).padStart(2, "0")}</span>
-                  <div>
-                    <div className="rt">{rod.text}</div>
-                    {rod.origin && <div className="or">{rod.origin}</div>}
-                  </div>
-                </div>
-              ) : (
-                <div className="empty">
-                  <strong>No rules yet.</strong>
-                  They&rsquo;ll accumulate from your friction entries.
-                </div>
-              )}
-            </div>
-          </section>
 
           <section className="panel">
             <header>
