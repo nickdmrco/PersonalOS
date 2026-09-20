@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC = ["/login", "/auth"];
+// The digest endpoint is here so Vercel's scheduler, which carries no session,
+// can reach it. It is not unprotected: it requires CRON_SECRET and refuses
+// outright when that is unset.
+const PUBLIC = ["/login", "/auth", "/api/digest"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

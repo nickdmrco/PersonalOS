@@ -49,8 +49,10 @@ export function lastMovement(goal: Goal, tasks: Task[]): number {
 export function drift(
   goal: Goal,
   tasks: Task[],
+  /** Injectable so a digest built for a given moment can be tested. */
+  now: Date = new Date(),
 ): { state: DriftState; label: string; days: number } {
-  const days = Math.round((Date.now() - lastMovement(goal, tasks)) / DAY);
+  const days = Math.round((now.getTime() - lastMovement(goal, tasks)) / DAY);
   if (days >= 28) return { state: "bad", label: "Off course", days };
   if (days >= 14) return { state: "warn", label: "Drifting", days };
   return { state: "ok", label: "On course", days };
