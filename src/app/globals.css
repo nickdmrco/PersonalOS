@@ -155,6 +155,15 @@ textarea { min-height: 76px; line-height: 1.6; resize: vertical; }
 .slot .box { width: 15px; height: 15px; border: 1.5px dashed var(--line-2); border-radius: 4px; flex: none; }
 .slot a { color: var(--accent); }
 
+/* A control, not a section: it sits at the foot of the focus list at the
+   weight of the secondary links in a panel header, not of the panels around
+   it. The marker stays — unlike the buttons elsewhere, this one should read
+   as something that opens. */
+.add-task > summary { cursor: pointer; padding: 10px 16px; color: var(--ink-3); list-style-position: inside; }
+.add-task > summary:hover { color: var(--accent); }
+.add-task[open] > summary { color: var(--accent); border-bottom: 1px solid var(--line); }
+.tasks + .add-task > summary, .empty + .add-task > summary { border-top: 1px solid var(--line); }
+
 /* ============================ loading ============================ */
 .skel { background: var(--surface-2); border-radius: 4px; animation: skel 1.25s ease-in-out infinite; }
 @keyframes skel { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }

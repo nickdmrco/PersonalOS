@@ -103,17 +103,18 @@ export default async function TodayPage() {
                   the list is just a backlog wearing a costume.
                 </div>
               )}
+
+              {/* Lives here rather than in a panel of its own: it is a control,
+                  and given its own box it read as heavily as the content either
+                  side of it. Quiet, and next to the list it might join. */}
+              <details className="add-task" id="add-task">
+                <summary className="num">Add a task</summary>
+                <div className="body">
+                  <TaskForm goals={quarterGoals} focusLeft={focusLeft} />
+                </div>
+              </details>
             </div>
           </section>
-
-          <details className="panel" id="add-task">
-            <summary className="body" style={{ cursor: "pointer", color: "var(--accent)" }}>
-              Add a task
-            </summary>
-            <div className="body" style={{ borderTop: "1px solid var(--line)" }}>
-              <TaskForm goals={quarterGoals} focusLeft={focusLeft} />
-            </div>
-          </details>
 
           {due.length > 0 && (
             <section className="panel">
