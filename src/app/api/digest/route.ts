@@ -56,6 +56,13 @@ export async function GET(request: NextRequest) {
 
   const appUrl = process.env.APP_URL ?? request.nextUrl.origin;
 
+  // Which week this is about. Half a day back, so a run that lands just after
+  // the week rolls over still reports the week that ended rather than the one
+  // that has barely started — the server thinks in UTC, and Sunday evening in
+  // California is already Monday there. Twelve hours is immaterial to the
+  // drift counts, whose thresholds are measured in weeks.
+  const reference = new Date(Date.now() - 12 * 60 * 60 * 1000);
+
   const { data: profiles, error } = await db.from("profiles").select("id, email");
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -89,12 +96,15 @@ export async function GET(request: NextRequest) {
       db.from("reviews").select("*").eq("user_id", profile.id),
     ]);
 
-    const digest = buildDigest({
-      goals: (goals.data ?? []) as Goal[],
-      tasks: (tasks.data ?? []) as Task[],
-      journal: (journal.data ?? []) as JournalEntry[],
-      reviews: (reviews.data ?? []) as Review[],
-    });
+    const digest = buildDigest(
+      {
+        goals: (goals.data ?? []) as Goal[],
+        tasks: (tasks.data ?? []) as Task[],
+        journal: (journal.data ?? []) as JournalEntry[],
+        reviews: (reviews.data ?? []) as Review[],
+      },
+      reference,
+    );
 
     if (digest.reviewed) {
       skip("already reviewed this week");
