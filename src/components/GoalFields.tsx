@@ -1,10 +1,14 @@
-import { saveGoal } from "@/app/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import type { Dream, Goal } from "@/lib/types";
 
-export function GoalForm({ goal, dreams }: { goal?: Goal; dreams: Dream[] }) {
+/**
+ * Fields only — the caller supplies the <form>, because the element that owns
+ * the form is also what has to close the disclosure around it once the write
+ * lands. See FormDisclosure.
+ */
+export function GoalFields({ goal, dreams }: { goal?: Goal; dreams: Dream[] }) {
   return (
-    <form action={saveGoal}>
+    <>
       {goal && <input type="hidden" name="id" value={goal.id} />}
 
       <div className="field">
@@ -68,6 +72,6 @@ export function GoalForm({ goal, dreams }: { goal?: Goal; dreams: Dream[] }) {
       </div>
 
       <SubmitButton className="btn pri" pendingLabel="Saving…">Save goal</SubmitButton>
-    </form>
+    </>
   );
 }

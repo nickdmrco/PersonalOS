@@ -1,10 +1,10 @@
-import { saveDream } from "@/app/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import type { Dream } from "@/lib/types";
 
-export function DreamForm({ dream }: { dream?: Dream }) {
+/** Fields only; the caller supplies the <form>. See GoalFields. */
+export function DreamFields({ dream }: { dream?: Dream }) {
   return (
-    <form action={saveDream}>
+    <>
       {dream && <input type="hidden" name="id" value={dream.id} />}
       <div className="field">
         <label className="label" htmlFor="d-title">Name it</label>
@@ -26,6 +26,6 @@ export function DreamForm({ dream }: { dream?: Dream }) {
         <textarea id="d-body" name="body" style={{ minHeight: 150 }} defaultValue={dream?.body} />
       </div>
       <SubmitButton className="btn pri" pendingLabel="Saving…">Save</SubmitButton>
-    </form>
+    </>
   );
 }

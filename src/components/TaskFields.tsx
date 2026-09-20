@@ -1,4 +1,3 @@
-import { addTask } from "@/app/actions";
 import { SubmitButton } from "@/components/SubmitButton";
 import { FOCUS_CAP } from "@/lib/model";
 import type { Goal } from "@/lib/types";
@@ -8,9 +7,9 @@ import type { Goal } from "@/lib/types";
  * tasks — the inbox exits, the review, a goal card — makes them undated on
  * purpose, because a date assigned in bulk is a date you won't keep.
  */
-export function TaskForm({ goals, focusLeft }: { goals: Goal[]; focusLeft: number }) {
+export function TaskFields({ goals, focusLeft }: { goals: Goal[]; focusLeft: number }) {
   return (
-    <form action={addTask}>
+    <>
       <div className="field">
         <label className="label" htmlFor="t-title">
           The next physical action
@@ -75,6 +74,6 @@ export function TaskForm({ goals, focusLeft }: { goals: Goal[]; focusLeft: numbe
           </span>
         )}
       </div>
-    </form>
+    </>
   );
 }

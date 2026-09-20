@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { deleteDream } from "@/app/actions";
-import { DreamForm } from "@/components/DreamForm";
+import { saveDream } from "@/app/actions";
+import { FormDisclosure } from "@/components/FormDisclosure";
+import { DreamFields } from "@/components/DreamFields";
 import { PageHeader } from "@/components/PageHeader";
 import { SubmitButton } from "@/components/SubmitButton";
 import { load } from "@/lib/data";
@@ -21,14 +23,16 @@ export default async function DreamsPage() {
         decoration.
       </div>
 
-      <details className="panel" style={{ marginBottom: 16 }}>
-        <summary className="body" style={{ cursor: "pointer", color: "var(--accent)" }}>
-          New dream
-        </summary>
-        <div className="body" style={{ borderTop: "1px solid var(--line)" }}>
-          <DreamForm />
-        </div>
-      </details>
+      <FormDisclosure
+        className="panel disclose"
+        style={{ marginBottom: 16 }}
+        label="New dream"
+        summaryClassName="body"
+        action={saveDream}
+        formClassName="body"
+      >
+        <DreamFields />
+      </FormDisclosure>
 
       <section className="panel">
         <div className="body flush">

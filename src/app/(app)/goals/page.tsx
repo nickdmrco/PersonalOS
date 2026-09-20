@@ -1,6 +1,7 @@
-import { archiveGoal, carryForwardGoal, unarchiveGoal } from "@/app/actions";
+import { archiveGoal, carryForwardGoal, saveGoal, unarchiveGoal } from "@/app/actions";
 import { GoalCard } from "@/components/GoalCard";
-import { GoalForm } from "@/components/GoalForm";
+import { FormDisclosure } from "@/components/FormDisclosure";
+import { GoalFields } from "@/components/GoalFields";
 import { PageHeader } from "@/components/PageHeader";
 import { SubmitButton } from "@/components/SubmitButton";
 import { load } from "@/lib/data";
@@ -30,14 +31,16 @@ export default async function GoalsPage() {
         </div>
       )}
 
-      <details className="panel" style={{ marginBottom: 16 }}>
-        <summary className="body" style={{ cursor: "pointer", color: "var(--accent)" }}>
-          New goal
-        </summary>
-        <div className="body" style={{ borderTop: "1px solid var(--line)" }}>
-          <GoalForm dreams={dreams} />
-        </div>
-      </details>
+      <FormDisclosure
+        className="panel disclose"
+        style={{ marginBottom: 16 }}
+        label="New goal"
+        summaryClassName="body"
+        action={saveGoal}
+        formClassName="body"
+      >
+        <GoalFields dreams={dreams} />
+      </FormDisclosure>
 
       <section className="panel">
         <header>

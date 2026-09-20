@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
-import { GoalForm } from "@/components/GoalForm";
+import { saveGoal } from "@/app/actions";
+import { FormDisclosure } from "@/components/FormDisclosure";
+import { GoalFields } from "@/components/GoalFields";
 import { TaskRow } from "@/components/TaskRow";
 import { load } from "@/lib/data";
 import { ago } from "@/lib/dates";
@@ -81,14 +83,15 @@ export default async function GoalPage({
         </section>
       )}
 
-      <details className="panel">
-        <summary className="body" style={{ cursor: "pointer", color: "var(--accent)" }}>
-          Edit this goal
-        </summary>
-        <div className="body" style={{ borderTop: "1px solid var(--line)" }}>
-          <GoalForm goal={goal} dreams={dreams} />
-        </div>
-      </details>
+      <FormDisclosure
+        className="panel disclose"
+        label="Edit this goal"
+        summaryClassName="body"
+        action={saveGoal}
+        formClassName="body"
+      >
+        <GoalFields goal={goal} dreams={dreams} />
+      </FormDisclosure>
     </>
   );
 }

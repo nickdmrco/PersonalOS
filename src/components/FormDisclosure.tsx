@@ -20,6 +20,7 @@ export function FormDisclosure({
   children,
   defaultOpen = false,
   className,
+  style,
   summaryAriaLabel,
   summaryClassName = "btn sm gh",
   formClassName,
@@ -30,6 +31,7 @@ export function FormDisclosure({
   children: ReactNode;
   defaultOpen?: boolean;
   className?: string;
+  style?: React.CSSProperties;
   /** Distinguishes one of many identically-labelled disclosures for a reader. */
   summaryAriaLabel?: string;
   summaryClassName?: string;
@@ -41,6 +43,7 @@ export function FormDisclosure({
   return (
     <details
       className={className}
+      style={style}
       open={open}
       onToggle={(e) => setOpen(e.currentTarget.open)}
     >

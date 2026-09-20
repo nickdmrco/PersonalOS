@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { addTask } from "@/app/actions";
 import { CoursePlot } from "@/components/CoursePlot";
 import { GoalCard } from "@/components/GoalCard";
 import { JournalEditor } from "@/components/JournalEditor";
 import { PageHeader } from "@/components/PageHeader";
-import { TaskForm } from "@/components/TaskForm";
+import { FormDisclosure } from "@/components/FormDisclosure";
+import { TaskFields } from "@/components/TaskFields";
 import { TaskRow } from "@/components/TaskRow";
 import { load } from "@/lib/data";
 import { DAY, daysBetween, dkey, qBounds, qkey } from "@/lib/dates";
@@ -107,12 +109,15 @@ export default async function TodayPage() {
               {/* Lives here rather than in a panel of its own: it is a control,
                   and given its own box it read as heavily as the content either
                   side of it. Quiet, and next to the list it might join. */}
-              <details className="add-task" id="add-task">
-                <summary className="num">Add a task</summary>
-                <div className="body">
-                  <TaskForm goals={quarterGoals} focusLeft={focusLeft} />
-                </div>
-              </details>
+              <FormDisclosure
+                className="add-task"
+                label="Add a task"
+                summaryClassName="num"
+                action={addTask}
+                formClassName="body"
+              >
+                <TaskFields goals={quarterGoals} focusLeft={focusLeft} />
+              </FormDisclosure>
             </div>
           </section>
 

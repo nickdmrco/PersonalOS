@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { DreamForm } from "@/components/DreamForm";
+import { saveDream } from "@/app/actions";
+import { DreamFields } from "@/components/DreamFields";
 import { load } from "@/lib/data";
 
 export default async function EditDreamPage({
@@ -22,7 +23,9 @@ export default async function EditDreamPage({
       </div>
       <section className="panel">
         <div className="body">
-          <DreamForm dream={dream} />
+          <form action={saveDream}>
+            <DreamFields dream={dream} />
+          </form>
         </div>
       </section>
     </>

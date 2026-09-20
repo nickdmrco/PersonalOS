@@ -164,6 +164,11 @@ textarea { min-height: 76px; line-height: 1.6; resize: vertical; }
 .add-task[open] > summary { color: var(--accent); border-bottom: 1px solid var(--line); }
 .tasks + .add-task > summary, .empty + .add-task > summary { border-top: 1px solid var(--line); }
 
+/* A panel that is itself a disclosure: the summary is the panel's own body
+   row until it opens, and then it becomes a heading with a rule under it. */
+.disclose > summary { cursor: pointer; color: var(--accent); }
+.disclose[open] > summary { border-bottom: 1px solid var(--line); }
+
 /* ============================ loading ============================ */
 .skel { background: var(--surface-2); border-radius: 4px; animation: skel 1.25s ease-in-out infinite; }
 @keyframes skel { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }

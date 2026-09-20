@@ -45,11 +45,15 @@ export default async function RulesPage({
         planning session. A rule you wrote before you had the evidence is a guess.
       </div>
 
-      <details className="panel" style={{ marginBottom: 16 }} open={Boolean(draft)}>
-        <summary className="body" style={{ cursor: "pointer", color: "var(--accent)" }}>
-          {draft ? "Turn this friction into a rule" : "Write a rule directly"}
-        </summary>
-        <div className="body" style={{ borderTop: "1px solid var(--line)" }}>
+      <FormDisclosure
+        className="panel disclose"
+        style={{ marginBottom: 16 }}
+        defaultOpen={Boolean(draft)}
+        label={draft ? "Turn this friction into a rule" : "Write a rule directly"}
+        summaryClassName="body"
+        action={saveRule}
+        formClassName="body"
+      >
           {draft && (
             <div className="note" style={{ marginBottom: 13 }}>
               This is what you wrote, not yet a rule. <b>Rewrite it as an
@@ -57,7 +61,6 @@ export default async function RulesPage({
               stays recorded underneath as the evidence for it.
             </div>
           )}
-          <form action={saveRule}>
             <div className="field">
               <label className="label" htmlFor="rule-text">The rule</label>
               <div className="hint">
@@ -85,9 +88,7 @@ export default async function RulesPage({
               />
             </div>
             <SubmitButton className="btn pri" pendingLabel="Saving…">Save rule</SubmitButton>
-          </form>
-        </div>
-      </details>
+      </FormDisclosure>
 
       <section className="panel">
         <div className="body flush">
