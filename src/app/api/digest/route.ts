@@ -61,18 +61,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const sent: string[] = [];
-  const skipped: { email: string; why: string }[] = [];
+  // Counts and reasons, never addresses. Anyone holding the secret can call
+  // this; the reply should not hand them a list of who has an account here.
+  let sent = 0;
+  const skipped: Record<string, number> = {};
+  const failures: string[] = [];
+  const skip = (why: string) => {
+    skipped[why] = (skipped[why] ?? 0) + 1;
+  };
 
   for (const profile of profiles ?? []) {
     const email: string | null = profile.email;
     if (!email) {
-      skipped.push({ email: String(profile.id), why: "no address on the profile" });
+      skip("no address on the profile");
       continue;
     }
     // Same gate as signing in: someone who could not get in should not get mail.
     if (!isAllowed(email)) {
-      skipped.push({ email, why: "not on ALLOWED_EMAILS" });
+      skip("not on ALLOWED_EMAILS");
       continue;
     }
 
@@ -91,13 +97,13 @@ export async function GET(request: NextRequest) {
     });
 
     if (digest.reviewed) {
-      skipped.push({ email, why: "already reviewed this week" });
+      skip("already reviewed this week");
       continue;
     }
     // Nothing happened and nothing is being tracked: an empty summary is just
     // a nag, and this is the shape of a brand new account.
     if (!digest.completed.length && !digest.goals.length && !digest.frictions.length) {
-      skipped.push({ email, why: "nothing to report" });
+      skip("nothing to report");
       continue;
     }
 
@@ -112,11 +118,14 @@ export async function GET(request: NextRequest) {
     });
 
     if (res.ok) {
-      sent.push(email);
+      sent++;
     } else {
-      skipped.push({ email, why: `resend ${res.status}: ${(await res.text()).slice(0, 200)}` });
+      // The provider's own message, which describes the request rather than
+      // the recipient, so it stays useful without naming anyone.
+      failures.push(`resend ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      skip("send failed");
     }
   }
 
-  return NextResponse.json({ sent, skipped });
+  return NextResponse.json({ sent, skipped, ...(failures.length ? { failures } : {}) });
 }
