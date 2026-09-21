@@ -5,6 +5,8 @@ import { NextResponse, type NextRequest } from "next/server";
 // can reach it. It is not unprotected: it requires CRON_SECRET and refuses
 // outright when that is unset.
 const PUBLIC = ["/login", "/auth", "/api/digest"];
+// /api/digest covers its unsubscribe child, which has to work from a mail
+// client with no session and no secret — its own token is what authorises it.
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

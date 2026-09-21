@@ -209,6 +209,42 @@ stranger whether a given address is registered — a fair trade here, where the
 alternative is you mistyping your own address and waiting for a link that was
 never sent, and where nobody can sign up regardless.
 
+## The weekly email
+
+One message a week, Sunday, and only when that week has no review yet. It
+carries the week's harvest rather than a link to it.
+
+Run `0003_digest_opt_out.sql` alongside the others. It adds two columns to
+`profiles`: whether the person has unsubscribed, and an opaque token the
+unsubscribe link is addressed by. The token is not a signature, so verifying
+it needs no secret, and rotating one person's link is a single row update.
+
+`/api/digest` is in the proxy's public list so a scheduler with no session can
+reach it. It is not open: it wants `CRON_SECRET`, compared in constant time,
+and refuses to run at all when that is unset. Trigger a send by hand with
+`/api/digest?key=…`; it answers with counts and reasons, never addresses.
+
+This is the only part of the app that holds the service role key, and so the
+only part that bypasses RLS. A cron job has no session, and the alternative —
+an RPC reachable with the public anon key — would be worse.
+
+### Staying out of spam
+
+Resend verifies the sending domain, which covers DKIM and the bounce path.
+Two things it does not do for you:
+
+- **DMARC.** `p=none` satisfies the large providers' checkbox and signals
+  nothing else. `p=quarantine` with a `rua=` address is the real answer, but
+  raise it only once the reports show nothing legitimate failing — anything
+  else you send from the domain is subject to the same policy.
+- **One-click unsubscribe.** `List-Unsubscribe` and `List-Unsubscribe-Post`
+  are set on every digest, and their absence is read as a spam signal on
+  recurring mail. The footer link asks before acting: scanners fetch every URL
+  in a message, so unsubscribing on GET would opt people out who never clicked.
+
+A domain registered weeks ago will land in spam regardless of any of this, and
+that improves with age and steady low volume rather than with configuration.
+
 ## Verifying RLS actually works
 
 Worth doing once, before you trust it with real entries. Sign up a second

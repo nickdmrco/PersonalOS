@@ -14,7 +14,7 @@ const esc = (s: string) =>
  * "time for your review" is worth reading once; a summary of the week is worth
  * reading every time, and it does the gathering step so starting is cheaper.
  */
-export function renderDigestEmail(d: Digest, appUrl: string) {
+export function renderDigestEmail(d: Digest, appUrl: string, unsubscribeUrl?: string) {
   const n = d.completed.length;
   const subject =
     n > 0
@@ -84,9 +84,14 @@ export function renderDigestEmail(d: Digest, appUrl: string) {
 
   lines.push(
     `<p style="margin:26px 0 0"><a href="${appUrl}/review" style="display:inline-block;background:#a62e68;color:#fff;text-decoration:none;font:600 14px/1 -apple-system,Segoe UI,sans-serif;padding:12px 18px;border-radius:6px">Run the review</a></p>`,
-    `<p style="margin:26px 0 0;font:11px/1.5 -apple-system,Segoe UI,sans-serif;color:#9aa8a2">Dead Reckoning · sent because this week has no review yet</p>`,
+    `<p style="margin:26px 0 0;font:11px/1.5 -apple-system,Segoe UI,sans-serif;color:#9aa8a2">Dead Reckoning · sent because this week has no review yet` +
+      (unsubscribeUrl
+        ? ` · <a href="${unsubscribeUrl}" style="color:#9aa8a2">stop these emails</a>`
+        : "") +
+      `</p>`,
   );
   text.push(`Run the review: ${appUrl}/review`, "", "Sent because this week has no review yet.");
+  if (unsubscribeUrl) text.push(`Stop these emails: ${unsubscribeUrl}`);
 
   const html = `<div style="background:#eff2ee;padding:28px"><div style="max-width:560px;margin:0 auto;background:#fafcf9;border:1px solid #d3dad3;border-radius:10px;padding:26px 28px">${lines.join("")}</div></div>`;
 

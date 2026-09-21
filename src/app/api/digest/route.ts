@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
   });
 
   const appUrl = process.env.APP_URL ?? request.nextUrl.origin;
+  const replyTo = process.env.DIGEST_REPLY_TO;
 
   // Which week this is about. Half a day back, so a run that lands just after
   // the week rolls over still reports the week that ended rather than the one
@@ -63,7 +64,9 @@ export async function GET(request: NextRequest) {
   // drift counts, whose thresholds are measured in weeks.
   const reference = new Date(Date.now() - 12 * 60 * 60 * 1000);
 
-  const { data: profiles, error } = await db.from("profiles").select("id, email");
+  const { data: profiles, error } = await db
+    .from("profiles")
+    .select("id, email, digest_opt_out, digest_token");
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -86,6 +89,10 @@ export async function GET(request: NextRequest) {
     // Same gate as signing in: someone who could not get in should not get mail.
     if (!isAllowed(email)) {
       skip("not on ALLOWED_EMAILS");
+      continue;
+    }
+    if (profile.digest_opt_out) {
+      skip("unsubscribed");
       continue;
     }
 
@@ -117,14 +124,30 @@ export async function GET(request: NextRequest) {
       continue;
     }
 
-    const { subject, html, text } = renderDigestEmail(digest, appUrl);
+    const unsubscribeUrl = `${appUrl}/api/digest/unsubscribe?t=${profile.digest_token}`;
+    const { subject, html, text } = renderDigestEmail(digest, appUrl, unsubscribeUrl);
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
         authorization: `Bearer ${resendKey}`,
         "content-type": "application/json",
       },
-      body: JSON.stringify({ from, to: email, subject, html, text }),
+      body: JSON.stringify({
+        from,
+        to: email,
+        subject,
+        html,
+        text,
+        ...(replyTo ? { reply_to: replyTo } : {}),
+        headers: {
+          // RFC 8058 one-click. The pair matters: the Post header is what tells
+          // the client it may unsubscribe without opening a browser, and its
+          // absence is read as a spam signal on recurring mail.
+          "List-Unsubscribe": `<${unsubscribeUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      }),
     });
 
     if (res.ok) {
